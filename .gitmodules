@@ -1,0 +1,12 @@
+[submodule "src/tf-pose-estimation"]
+	path = src/tf-pose-estimation
+	url = git@github.com:ildoonet/tf-pose-estimation.git
+[submodule "src/video_stream_opencv"]
+	path = src/video_stream_opencv
+	url = git@github.com:ros-drivers/video_stream_opencv.git
+[submodule "src/image_view"]
+	path = src/image_view
+	url = git@github.com:ros-perception/image_pipeline.git
+[submodule "src/ros-video-recorder"]
+	path = src/ros-video-recorder
+	url = git@github.com:ildoonet/ros-video-recorder.git
