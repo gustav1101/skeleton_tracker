@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(skpid)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 SET("OpenCV_DIR" "/opt/ros/kinetic/share/OpenCV-3.3.1-dev/")
 
@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
+  tfpose_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -207,4 +208,3 @@ include_directories(
 
 add_executable(skpid src/skpid.cpp)
 target_link_libraries(skpid ${catkin_LIBRARIES})
-#add_dependencies(talker beginner_tutorials_generate_messages_cpp)
