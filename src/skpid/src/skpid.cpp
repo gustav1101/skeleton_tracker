@@ -40,7 +40,6 @@ void ImageConverter::imageCb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-// Draw an example circle on the video stream
     bool bodyPartsRecognised = ImageConverter::last_recognised_bodyparts.size() > 0;
     
     if (cv_ptr->image.rows > 60 && cv_ptr->image.cols > 60 && bodyPartsRecognised)
@@ -53,6 +52,8 @@ void ImageConverter::imageCb(const sensor_msgs::ImageConstPtr& msg)
             cv::circle(cv_ptr->image, cv::Point(posInPic_x, posInPic_y), 5, CV_RGB(0,0,255));
             cv::putText(cv_ptr->image, std::to_string(bodyPart.ID), cv::Point(posInPic_x + 8, posInPic_y + 8), 0, 0.7, CV_RGB(255,0,0));
         }
+
+        cv::putText(cv_ptr->image, std::to_string(ImageConverter::last_recognised_bodyparts.size()), cv::Point(20,20),0,0.7, CV_RGB(0,255,0));
     }
         
 // Update GUI Window

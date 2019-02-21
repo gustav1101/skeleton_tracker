@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="skeleton_to_3d" pkg="skeleton3d" type="point_projector" output="screen">
+    </node>
+</launch>

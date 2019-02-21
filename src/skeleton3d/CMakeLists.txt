@@ -1,23 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(skpid)
+project(skeleton3d)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
-
-SET("OpenCV_DIR" "/opt/ros/kinetic/share/OpenCV-3.3.1-dev/")
-
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  OpenCV
-  cv_bridge
-  image_transport
+  geometry_msgs
   roscpp
-  sensor_msgs
   std_msgs
+  sensor_msgs
   tfpose_ros
+  message_generation
+  genmsg
 )
 
 ## System dependencies are found with CMake's conventions
@@ -54,11 +51,14 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  DIRECTORY
+  msg
+  FILES
+  BodyPart3d.msg
+  Skeleton3d.msg
+  Skeletons3d.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -75,10 +75,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -111,8 +112,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES skeletponpart_identifier
-#  CATKIN_DEPENDS OpenCV cv_bridge image_transport roscpp sensor_msgs std_msgs
+#  LIBRARIES skeleton3d
+CATKIN_DEPENDS message_runtime
+EXPORTED_TARGETS skeleton3d_generate_messages_cpp
+#  CATKIN_DEPENDS geometry_msgs/Point roscpp sensor_msgs/PointCloud2
 #  DEPENDS system_lib
 )
 
@@ -129,7 +132,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/skeletponpart_identifier.cpp
+#   src/${PROJECT_NAME}/skeleton3d.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -140,7 +143,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/skeletponpart_identifier_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/skeleton3d_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -197,7 +200,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_skeletponpart_identifier.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_skeleton3d.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
@@ -205,7 +208,11 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+add_executable(point_projector src/PointProjector.cpp)
+target_link_libraries(point_projector ${catkin_LIBRARIES})
+add_dependencies(point_projector skeleton3d_generate_messages_cpp)
+add_dependencies(point_projector ${catkin_EXPORTED_TARGETS})
 
-add_executable(skpid src/skpid.cpp)
-target_link_libraries(skpid ${catkin_LIBRARIES})
-add_dependencies(skpid ${catkin_EXPORTED_TARGETS})
+add_executable(skeleton_visualiser src/SkeletonVisualiser.cpp)
+target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
+add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
