@@ -4,6 +4,9 @@ project(skeleton3d)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
+find_package(PCL REQUIRED)
+find_package(pcl_ros REQUIRED)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -15,7 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   tfpose_ros
   message_generation
   genmsg
-)
+  pcl_ros
+ )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -78,7 +82,8 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   geometry_msgs
-  std_msgs  # Or other packages containing msgs
+  std_msgs
+  # Or other packages containing msgs
 )
 
 ################################################
@@ -119,6 +124,8 @@ EXPORTED_TARGETS skeleton3d_generate_messages_cpp
 #  DEPENDS system_lib
 )
 
+
+
 ###########
 ## Build ##
 ###########
@@ -128,7 +135,10 @@ EXPORTED_TARGETS skeleton3d_generate_messages_cpp
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-)
+  ${PCL_INCLUDE_DIRS}
+  )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -209,7 +219,8 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(point_projector src/PointProjector.cpp)
-target_link_libraries(point_projector ${catkin_LIBRARIES})
+target_link_libraries(point_projector ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#target_link_libraries(point_projector )
 add_dependencies(point_projector skeleton3d_generate_messages_cpp)
 add_dependencies(point_projector ${catkin_EXPORTED_TARGETS})
 

@@ -64,13 +64,23 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_poi
     
     if ((all_body_parts.size() < 2) || (adjacency_list.size() < 2))
     {
+        std::string part;
+        switch (adjacency_list.at(0))
+        {
+        case 0: part="head-torso"; break;
+        case 4: part="arms"; break;
+        case 10: part="legs"; break;
+        case 16: part="head"; break;
+        default: ROS_WARN("Invalid Adjacency list"); return all_consecutive_lines;
+        }
+        ROS_WARN("Discarding message for %s!", part.c_str());
         return all_consecutive_lines;
     }
 
     for(auto adjacency_iterator = adjacency_list.begin(); adjacency_iterator != adjacency_list.end()-1; adjacency_iterator++)
     {
         const skeleton3d::BodyPart3d &cur_part = all_body_parts.at(*adjacency_iterator);
-        const skeleton3d::BodyPart3d &next_part = all_body_parts.at(*adjacency_iterator);
+        const skeleton3d::BodyPart3d &next_part = all_body_parts.at(*std::next(adjacency_iterator));
         
         if(cur_part.part_is_valid && next_part.part_is_valid)
         {
@@ -107,7 +117,7 @@ void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<
     for (const std::vector<geometry_msgs::Point> &consecutive_line : all_consecutive_lines)
     {
         visualization_msgs::Marker skeleton_markers;
-        skeleton_markers.header.frame_id = "/myxtion_link";
+        skeleton_markers.header.frame_id = "/myxtion_depth_optical_frame";
         skeleton_markers.header.stamp = ros::Time::now();
         skeleton_markers.ns = "skeleton_to_3d_vis";
         skeleton_markers.action = visualization_msgs::Marker::ADD;
@@ -117,7 +127,7 @@ void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<
     
         skeleton_markers.type = visualization_msgs::Marker::LINE_STRIP;
     
-        skeleton_markers.scale.x = 0.1;
+        skeleton_markers.scale.x = 0.02;
     
         skeleton_markers.color.b = 1.0;
         skeleton_markers.color.a = 1.0;
