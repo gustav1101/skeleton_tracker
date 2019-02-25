@@ -132,10 +132,11 @@ void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<
         skeleton_markers.color.b = 1.0;
         skeleton_markers.color.a = 1.0;
 
+        skeleton_markers.lifetime = ros::Duration(1.0);
+
         skeleton_markers.points = consecutive_line;
 
         skeleton3d_marker_publisher_.publish(skeleton_markers);
-
     }
 }
 
