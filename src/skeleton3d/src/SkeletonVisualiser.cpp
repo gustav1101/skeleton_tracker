@@ -1,4 +1,10 @@
 #include "SkeletonVisualiser.h"
+
+/* The following vectors are adjacency information for which body part IDs
+ * connected to which other body parts. The numbers refer to the corresponding
+ * body part IDs. Eventually, this will be used to draw lines between body
+ * parts whose IDs are in one list.
+ */
 const std::vector<int> SkeletonVisualiser::ADJACENCY_HEAD_TORSO_ = {0, 1};
 const std::vector<int> SkeletonVisualiser::ADJACENCY_ARMS_ = {4, 3, 2, 1, 5, 6, 7};
 const std::vector<int> SkeletonVisualiser::ADJACENCY_HEAD_ = {16, 14, 0, 15, 17};
@@ -30,20 +36,22 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::create_marker
     // Try to iterate through list of markers.
     std::vector<std::vector<geometry_msgs::Point>> marker_lines;
 
-    // Torso-Head:
+    // Torso-Head connection:
     marker_lines = construct_point_line(skeleton.body_parts, SkeletonVisualiser::ADJACENCY_HEAD_TORSO_);
     
     
-    
+    // Both arms and contact point to torso:
     std::vector<std::vector<geometry_msgs::Point>> temp_lines =
         construct_point_line(skeleton.body_parts, SkeletonVisualiser::ADJACENCY_ARMS_);
     marker_lines.insert(marker_lines.end(),temp_lines.begin(), temp_lines.end());
     temp_lines.clear();
 
+    // Head:
     temp_lines = construct_point_line(skeleton.body_parts, SkeletonVisualiser::ADJACENCY_HEAD_);
     marker_lines.insert(marker_lines.end(),temp_lines.begin(), temp_lines.end());
     temp_lines.clear();
-    
+
+    // Both legs and contact point to torso (as well as hip):
     temp_lines = construct_point_line(skeleton.body_parts, SkeletonVisualiser::ADJACENCY_LEGS_);
     marker_lines.insert(marker_lines.end(),temp_lines.begin(), temp_lines.end());
     temp_lines.clear();
@@ -52,7 +60,7 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::create_marker
 }
 
 /*
- * Iterate through the adjacency list. For each pair of adjacent points find the
+ * Iterate through one given adjacency list. For each pair of adjacent points find the
  * corresponding body parts. Add their coordinate points to the list of markers.
  * Only add consecutive lists of valid body part coordinate points to make sure the lines
  * are drawn properly later.
@@ -61,9 +69,14 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_poi
 {
     std::vector<std::vector<geometry_msgs::Point>> all_consecutive_lines;
     std::vector<geometry_msgs::Point> consecutive_line;
-    
+
+    // If the given vector of body parts is smaller than 2 we can't draw lines, so stop here.
+    // The checking for the adjacency list is just to make really, really sure we're not
+    // attempting to access illegal memory and should never happen since adj. lists are
+    // constant.
     if ((all_body_parts.size() < 2) || (adjacency_list.size() < 2))
     {
+        // For debugging purposes: Find out which adjacency list is discarded here
         std::string part;
         switch (adjacency_list.at(0))
         {
@@ -77,6 +90,11 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_poi
         return all_consecutive_lines;
     }
 
+    /* Create consecutive lines between body parts that are adjacent (according to adj. list).
+     * Body parts that have not been recognised by the network (and are marked as invalid)
+     * will stop the current consecutive line. A new one will eventually be started once the next
+     * valid body part is encountered.
+     */
     for(auto adjacency_iterator = adjacency_list.begin(); adjacency_iterator != adjacency_list.end()-1; adjacency_iterator++)
     {
         const skeleton3d::BodyPart3d &cur_part = all_body_parts.at(*adjacency_iterator);
@@ -104,11 +122,13 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_poi
             }
         }
     }
-    // If the last two body points were valid we still have an ongoing consecutive line here.
+    // If the last two body points were valid we still have an ongoing consecutive line here,
+    // in which case it needs to be added to the vector holding all consecutive lines
     if (consecutive_line.size() > 0)
     {
         all_consecutive_lines.push_back(consecutive_line);
     }
+    
     return all_consecutive_lines;
 }
 

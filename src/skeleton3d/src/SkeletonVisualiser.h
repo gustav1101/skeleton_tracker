@@ -12,8 +12,6 @@ private:
     ros::Publisher skeleton3d_marker_publisher_;
     int skeleton_consecutive_line_id_;
     
-    int output_counter_ = 50;
-    
     static const std::vector<int> ADJACENCY_HEAD_TORSO_;
     static const std::vector<int> ADJACENCY_ARMS_;
     static const std::vector<int> ADJACENCY_HEAD_;
