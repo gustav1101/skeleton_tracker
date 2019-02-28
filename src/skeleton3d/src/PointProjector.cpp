@@ -2,32 +2,50 @@
 #include <tfpose_ros/BodyPartElm.h>
 #include <skeleton3d/BodyPart3d.h>
 #include <skeleton3d/Skeletons3d.h>
-
-
+#include <pcl_conversions/pcl_conversions.h>
+#include "exceptions.h"
 
 PointProjector::PointProjector()
 {
-    skeleton_subscriber_ = node_handle_.subscribe("/pose_estimator/pose", 10, &PointProjector::save_skeletons, this);
-    pointcloud_subscriber_ = node_handle_.subscribe<PointCloud>("/myxtion/depth_registered/points", 10, &PointProjector::construct_3d_skeleton, this);
-        //("/myxtion/depth_registered/points",10, &PointProjector::construct_3d_skeleton, this);
-    skeleton3d_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>("skeleton_to_3d/skeletons", 50);
+    std::string pose_topic_name = get_param("~input_pose");
+    std::string pointcloud_topic_name = get_param("~input_pointcloud");
+    std::string skeleton_topic_name = get_param("~output_skeleton");
+    
+    skeleton_subscriber_ = new message_filters::Subscriber<tfpose_ros::Persons>(
+        node_handle_,
+        pose_topic_name,
+        INPUT_QUEUE_SIZE_);
+    pointcloud_subscriber_ = new message_filters::Subscriber<PointCloud>(
+        node_handle_,
+        pointcloud_topic_name,
+        INPUT_QUEUE_SIZE_);
+    skeleton3d_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
+        skeleton_topic_name,
+        50);
+    
+    message_synchronizer_ = new message_filters::Synchronizer<MySyncPolicy>(MySyncPolicy(INPUT_QUEUE_SIZE_), *skeleton_subscriber_, *pointcloud_subscriber_);
+    message_synchronizer_->registerCallback(
+        boost::bind(&PointProjector::construct_3d_skeleton, this, _1, _2));
 }
 
-PointProjector::~PointProjector() {}
+PointProjector::~PointProjector() {
+    delete message_synchronizer_;
+    delete skeleton_subscriber_;
+    delete pointcloud_subscriber_;
+}
 
-void PointProjector::construct_3d_skeleton(const PointCloud::ConstPtr& point_cloud)
+
+void PointProjector::construct_3d_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
 {
-    // make sure we have saved a skeleton before we start searching for points in 3d
-    if (latest_persons_.persons.size() == 0 ) {
-        return;
-    }
-
     std::vector<skeleton3d::Skeleton3d> skeletons_3d;
     
     // For each skeleton created by openpose: transform into 3d skeleton
-    for(int i=0; i < latest_persons_.persons.size(); i++)
+    for(const tfpose_ros::Person &person : persons_msg->persons)
     {
-        boost::optional<skeleton3d::Skeleton3d> skeleton = transform_skeleton_to_3d(i, point_cloud);
+        unsigned int image_width = persons_msg->image_w;
+        unsigned int image_height = persons_msg->image_h;
+        
+        boost::optional<skeleton3d::Skeleton3d> skeleton = transform_skeleton_to_3d(person, point_cloud, image_width, image_height);
         if (skeleton)
         {
             skeletons_3d.push_back(*skeleton);
@@ -42,16 +60,20 @@ void PointProjector::construct_3d_skeleton(const PointCloud::ConstPtr& point_clo
     skeletons_msg.header.stamp = ros::Time::now();
     skeletons_msg.header.frame_id = "/myxtion_depth_frame";
 
+    //ROS_INFO("\npcloud time: %s\npose   time: %s", PointProjector::get_time_string(pcl_conversions::fromPCL(point_cloud->header.stamp)).c_str(), PointProjector::get_time_string(persons_msg->header.stamp).c_str());
+
     skeleton3d_publisher_.publish(skeletons_msg);
-    
 }
 
-void PointProjector::save_skeletons(const tfpose_ros::Persons& persons_msg)
+std::string PointProjector::get_time_string(const ros::Time &timestamp)
 {
-    latest_persons_ = tfpose_ros::Persons(persons_msg);
+    boost::posix_time::ptime my_posix_time = timestamp.toBoost();
+    std::string iso_time_str = boost::posix_time::to_iso_extended_string(my_posix_time);
+    return iso_time_str;
 }
 
-boost::optional<skeleton3d::Skeleton3d> PointProjector::transform_skeleton_to_3d(int i, const PointCloud::ConstPtr& point_cloud)
+
+boost::optional<skeleton3d::Skeleton3d> PointProjector::transform_skeleton_to_3d(const tfpose_ros::Person &person, const PointCloud::ConstPtr &point_cloud, unsigned int image_width, unsigned int image_height)
 {
     skeleton3d::Skeleton3d skeleton;
     skeleton.body_parts = std::vector<skeleton3d::BodyPart3d>(18);
@@ -64,13 +86,13 @@ boost::optional<skeleton3d::Skeleton3d> PointProjector::transform_skeleton_to_3d
         body_part.part_is_valid = false;
     }
 
-    for(const tfpose_ros::BodyPartElm &body_part_2d : latest_persons_.persons.at(i).body_part)
+    for(const tfpose_ros::BodyPartElm &body_part_2d : person.body_part)
     {
         skeleton3d::BodyPart3d &body_part_3d = skeleton.body_parts.at(body_part_2d.part_id);
         body_part_3d.part_is_valid = true;
         body_part_3d.part_id = body_part_2d.part_id;
-        int pos_x = body_part_2d.x * latest_persons_.image_w;
-        int pos_y = body_part_2d.y * latest_persons_.image_h;
+        int pos_x = body_part_2d.x * image_width;
+        int pos_y = body_part_2d.y * image_height;
         
         pcl::PointXYZ point = point_cloud->at(pos_x, pos_y);
         
@@ -95,9 +117,26 @@ inline bool PointProjector::any_point_invalid(float x, float y, float z)
     return std::isnan(x) || std::isnan(y) || std::isnan(z);
 }
 
+std::string PointProjector::get_param(const std::string &param_name)
+{
+    std::string param;
+    if (!ros::param::get(param_name, param))
+    {
+        throw skeleton_exceptions::LackingRosParameter(param_name);
+    }
+    return param;
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "skeleton_to_3d");
-    PointProjector point_projector;
-    ros::spin();
+    try
+    {
+        PointProjector point_projector;
+        ros::spin();
+    } catch (skeleton_exceptions::LackingRosParameter &e)
+    {
+        ROS_ERROR("Missing Node Parameter %s", e.get_info().c_str());
+        return 1;
+    }
 }

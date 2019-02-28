@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="message_head_inspector" pkg="skeleton3d" type="messagehead_inspector" output="screen" required="true">
+  </node>
+
+</launch>

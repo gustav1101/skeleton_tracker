@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     <node name="skeleton_from_camera" pkg="skeleton3d" type="skeleton_visualiser" output="screen">
+      <param name="input_skeleton" type="str" value="/skeleton_to_3d/skeletons" />
+      <param name = "output_marker" type="str" value="/skeleton_to_3d_vis/skeleton_vis" />
     </node>
 
 

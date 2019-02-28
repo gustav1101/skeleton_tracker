@@ -1,4 +1,5 @@
 #include "SkeletonVisualiser.h"
+#include "exceptions.h"
 
 /* The following vectors are adjacency information for which body part IDs
  * connected to which other body parts. The numbers refer to the corresponding
@@ -12,8 +13,14 @@ const std::vector<int> SkeletonVisualiser::ADJACENCY_LEGS_ = {10, 9, 8, 1, 11, 1
 
 SkeletonVisualiser::SkeletonVisualiser()
 {
-    skeleton3d_subscriber_ = node_handle_.subscribe("skeleton_to_3d/skeletons", 10, &SkeletonVisualiser::build_3d_skeletons, this);
-    skeleton3d_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("skeleton_to_3d_vis/skeleton_vis", 10);
+    skeleton3d_subscriber_ = node_handle_.subscribe(
+        get_param("~input_skeleton"),
+        10,
+        &SkeletonVisualiser::build_3d_skeletons,
+        this);
+    skeleton3d_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>(
+        get_param("~output_marker"),
+        10);
 }
 
 SkeletonVisualiser::~SkeletonVisualiser()
@@ -21,7 +28,7 @@ SkeletonVisualiser::~SkeletonVisualiser()
 
 }
 
-void SkeletonVisualiser::build_3d_skeletons(const skeleton3d::Skeletons3d skeletons)
+void SkeletonVisualiser::build_3d_skeletons(const skeleton3d::Skeletons3d &skeletons)
 {
     skeleton_consecutive_line_id_ = 0;
     for(skeleton3d::Skeleton3d skeleton : skeletons.skeletons)
@@ -31,7 +38,7 @@ void SkeletonVisualiser::build_3d_skeletons(const skeleton3d::Skeletons3d skelet
     }
 }
 
-std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::create_markers(const skeleton3d::Skeleton3d skeleton)
+std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::create_markers(const skeleton3d::Skeleton3d &skeleton)
 {
     // Try to iterate through list of markers.
     std::vector<std::vector<geometry_msgs::Point>> marker_lines;
@@ -65,7 +72,7 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::create_marker
  * Only add consecutive lists of valid body part coordinate points to make sure the lines
  * are drawn properly later.
  */
-std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_point_line(const std::vector<skeleton3d::BodyPart3d> &all_body_parts, std::vector<int> adjacency_list)
+std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_point_line(const std::vector<skeleton3d::BodyPart3d> &all_body_parts, const std::vector<int> &adjacency_list)
 {
     std::vector<std::vector<geometry_msgs::Point>> all_consecutive_lines;
     std::vector<geometry_msgs::Point> consecutive_line;
@@ -132,7 +139,7 @@ std::vector<std::vector<geometry_msgs::Point>> SkeletonVisualiser::construct_poi
     return all_consecutive_lines;
 }
 
-void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<geometry_msgs::Point>> all_consecutive_lines)
+void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<geometry_msgs::Point>> &all_consecutive_lines)
 {
     for (const std::vector<geometry_msgs::Point> &consecutive_line : all_consecutive_lines)
     {
@@ -160,9 +167,27 @@ void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<
     }
 }
 
+std::string SkeletonVisualiser::get_param(const std::string &param_name)
+{
+    std::string param;
+    if (!ros::param::get(param_name, param))
+    {
+        ROS_ERROR("Missing Node Parameter %s", param_name.c_str());
+        throw skeleton_exceptions::LackingRosParameter(param_name);
+    }
+    return param;
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "skeleton_to_3d_vis");
-    SkeletonVisualiser vis;
-    ros::spin();
+    try
+    {
+        SkeletonVisualiser vis;
+        ros::spin();
+    } catch (skeleton_exceptions::LackingRosParameter &e)
+    {
+        ROS_ERROR("Missing Node Parameter %s", e.get_info().c_str());
+        return 1;
+    }
 }

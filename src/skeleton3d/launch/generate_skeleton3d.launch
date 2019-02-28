@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     <node name="skeleton_to_3d" pkg="skeleton3d" type="point_projector" output="screen">
+      <param name="input_pose" type="str" value="/pose_estimator/pose" />
+      <param name="input_pointcloud" type="str" value="/myxtion/depth_registered/points" />
+      <param name="output_skeleton" type="str" value="/skeleton_to_3d/skeletons" />
     </node>
 </launch>

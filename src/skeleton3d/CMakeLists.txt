@@ -19,7 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   genmsg
   pcl_ros
- )
+  image_transport
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -227,3 +228,6 @@ add_dependencies(point_projector ${catkin_EXPORTED_TARGETS})
 add_executable(skeleton_visualiser src/SkeletonVisualiser.cpp)
 target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
 add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
+
+add_executable(messagehead_inspector src/MessageHeadInspector.cpp)
+target_link_libraries(messagehead_inspector ${catkin_LIBRARIES})
