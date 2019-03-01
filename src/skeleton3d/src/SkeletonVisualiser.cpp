@@ -143,6 +143,10 @@ void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<
 {
     for (const std::vector<geometry_msgs::Point> &consecutive_line : all_consecutive_lines)
     {
+        if (consecutive_line.size() < 2 )
+        {
+            ROS_WARN("Empty Consecutive line");
+        }
         visualization_msgs::Marker skeleton_markers;
         skeleton_markers.header.frame_id = "/myxtion_depth_optical_frame";
         skeleton_markers.header.stamp = ros::Time::now();

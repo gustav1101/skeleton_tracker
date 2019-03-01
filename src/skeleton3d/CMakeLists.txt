@@ -219,11 +219,11 @@ add_definitions(${PCL_DEFINITIONS})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(point_projector src/PointProjector.cpp)
-target_link_libraries(point_projector ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-#target_link_libraries(point_projector )
-add_dependencies(point_projector skeleton3d_generate_messages_cpp)
-add_dependencies(point_projector ${catkin_EXPORTED_TARGETS})
+add_executable(skeleton_creator src/SkeletonCreator.cpp src/PointFinder.cpp)
+target_link_libraries(skeleton_creator ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#target_link_libraries(skeleton_creator )
+add_dependencies(skeleton_creator skeleton3d_generate_messages_cpp)
+add_dependencies(skeleton_creator ${catkin_EXPORTED_TARGETS})
 
 add_executable(skeleton_visualiser src/SkeletonVisualiser.cpp)
 target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
@@ -231,3 +231,4 @@ add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
 
 add_executable(messagehead_inspector src/MessageHeadInspector.cpp)
 target_link_libraries(messagehead_inspector ${catkin_LIBRARIES})
+add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
