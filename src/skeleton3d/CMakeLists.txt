@@ -219,7 +219,7 @@ add_definitions(${PCL_DEFINITIONS})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(skeleton_creator src/SkeletonCreator.cpp src/PointFinder.cpp)
+add_executable(skeleton_creator src/RosInteractor.cpp src/SkeletonCreator.cpp src/PointFinder.cpp)
 target_link_libraries(skeleton_creator ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #target_link_libraries(skeleton_creator )
 add_dependencies(skeleton_creator skeleton3d_generate_messages_cpp)
