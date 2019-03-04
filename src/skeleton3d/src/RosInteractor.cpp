@@ -29,17 +29,20 @@ void RosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skelet
 
 RosInteractor::RosParams RosInteractor::read_params()
 {
-    int scatter_distance;
     std::string pose_topic_name = get_param("~input_pose");
     std::string pointcloud_topic_name = get_param("~input_pointcloud");
     std::string skeleton_topic_name = get_param("~output_skeleton");
+    double frame_offset;
+    ros::param::param<double>("~x_frame_offset", frame_offset, 10.0);
+    int scatter_distance;
     ros::param::param<int>("~scatter_distance", scatter_distance, 6);
 
     return RosParams {
         .pose_topic_name = pose_topic_name,
             .pointcloud_topic_name = pointcloud_topic_name,
             .skeleton_topic_name = skeleton_topic_name,
-            .scatter_distance = scatter_distance };
+            .scatter_distance = scatter_distance,
+            .x_frame_offset = frame_offset};
 }
 
 std::string RosInteractor::get_param(const std::string &param_name)

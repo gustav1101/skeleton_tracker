@@ -11,8 +11,6 @@ typedef message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, Poi
 class RosInteractor
 {
 private:
-    
-    
     static const int INPUT_QUEUE_SIZE_ = 30;
     SkeletonCreator skeleton_creator_;
     ros::NodeHandle node_handle_;
@@ -32,9 +30,10 @@ public:
         const std::string pointcloud_topic_name;
         const std::string skeleton_topic_name;
         const int scatter_distance;
+        const double x_frame_offset;
     };
     
-RosInteractor(const RosParams &params) : skeleton_creator_(params.scatter_distance)
+RosInteractor(const RosParams &params) : skeleton_creator_(params.scatter_distance, params.x_frame_offset)
     {
         create_listeners(params.pose_topic_name, params.pointcloud_topic_name);
         create_publisher(params.skeleton_topic_name);

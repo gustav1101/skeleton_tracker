@@ -14,7 +14,8 @@ private:
     const int point_finder_scatter_distance_ = 8;
     unsigned int image_height_;
     unsigned int image_width_;
-
+    const double frame_offset_;
+    
     void save_skeletons(const tfpose_ros::Persons& persons_msg);
     boost::optional<skeleton3d::Skeleton3d> transform_skeleton_to_3d(
         const tfpose_ros::Person &person,
@@ -22,7 +23,7 @@ private:
     bool any_coordinate_invalid(float x, float y, float z);
     
 public:
-SkeletonCreator(int scatter_distance) : point_finder_scatter_distance_(scatter_distance) {}
+SkeletonCreator(int scatter_distance, double frame_offset) : point_finder_scatter_distance_(scatter_distance), frame_offset_(frame_offset) {}
     ~SkeletonCreator();
     std::vector<skeleton3d::Skeleton3d> generate_skeleton(
         const std::vector<tfpose_ros::Person> &persons,

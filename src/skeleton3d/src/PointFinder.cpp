@@ -5,7 +5,7 @@
 boost::optional<geometry_msgs::Point> PointFinder::find_best_point_around_coordinates(
     float relative_x, float relative_y)
 {
-    unsigned int x = relative_x * image_max_x_;
+    unsigned int x = relative_x * image_max_x_ + frame_offset_;
     unsigned int y = relative_y * image_max_y_;
     Point2d center_point_2d{.x = x, .y = y};
     

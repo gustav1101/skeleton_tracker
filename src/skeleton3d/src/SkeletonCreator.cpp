@@ -40,7 +40,7 @@ boost::optional<skeleton3d::Skeleton3d> SkeletonCreator::transform_skeleton_to_3
         body_part.part_is_valid = false;
     }
 
-    PointFinder point_finder(image_width_, image_height_, point_cloud, point_finder_scatter_distance_);
+    PointFinder point_finder(image_width_, image_height_, point_cloud, point_finder_scatter_distance_, frame_offset_);
     for(const tfpose_ros::BodyPartElm &body_part_2d : person.body_part)
     {
         skeleton3d::BodyPart3d &body_part_3d = skeleton.body_parts.at(body_part_2d.part_id);

@@ -18,6 +18,7 @@ private:
     unsigned int image_max_y_;
     const PointCloud::ConstPtr point_cloud_;
     const int SCATTER_DISTANCE_;
+    const double frame_offset_;
 
     Point2d absolute_coordinates(float &relative_x, float &relative_y);
     std::vector<geometry_msgs::Point> create_scattered_points(
@@ -26,11 +27,12 @@ private:
         Point2d &point2d);
     geometry_msgs::Point find_best_point(const std::vector<geometry_msgs::Point> &possible_points, const geometry_msgs::Point &center_point);
     inline bool any_coordinate_invalid(float x, float y, float z);
+
 public:
 PointFinder(
     unsigned int image_max_x, unsigned int image_max_y,
     const PointCloud::ConstPtr &point_cloud,
-    int scatter_distance) : image_max_x_(image_max_x), image_max_y_(image_max_y), point_cloud_(point_cloud), SCATTER_DISTANCE_(scatter_distance) { };
+    int scatter_distance, double frame_offset) : image_max_x_(image_max_x), image_max_y_(image_max_y), point_cloud_(point_cloud), SCATTER_DISTANCE_(scatter_distance), frame_offset_(frame_offset){ };
     ~PointFinder() { };
 
     boost::optional<geometry_msgs::Point> find_best_point_around_coordinates(

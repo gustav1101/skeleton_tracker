@@ -5,6 +5,7 @@
       <param name="input_pointcloud" type="str" value="/myxtion/depth_registered/points" />
       <param name="output_skeleton" type="str" value="/skeleton_to_3d/skeletons" />
       <param name="scatter_distance" type="int" value="8" />
+      <param name="x_frame_offset" type="double" value="4.0" />
     </node>
 
     <node name="skeleton_from_camera" pkg="skeleton3d" type="skeleton_visualiser" output="screen">
