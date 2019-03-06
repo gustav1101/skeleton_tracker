@@ -59,6 +59,25 @@ boost::optional<skeleton3d::Skeleton3d> SkeletonCreator::transform_skeleton_to_3
     return skeleton;
 }
 
+geometry_msgs::Point SkeletonCreator::get_skeleton_center(skeleton3d::Skeleton3d &skeleton)
+{
+    double x,y,z;
+    for (const skeleton3d::BodyPart3d &body_part : skeleton.body_parts)
+    {
+        x+=body_part.point.x;
+        y+=body_part.point.y;
+        z+=body_part.point.z;
+    }
+    x/=skeleton.body_parts.size();
+    y/=skeleton.body_parts.size();
+    z/=skeleton.body_parts.size();
+    geometry_msgs::Point center;
+    center.x = x;
+    center.y = y;
+    center.z = z;
+    return center;
+}
+
 void SkeletonCreator::set_image_size(unsigned int width, unsigned int height)
 {
     image_height_ = height;

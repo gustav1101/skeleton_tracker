@@ -232,3 +232,7 @@ add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
 add_executable(messagehead_inspector src/MessageHeadInspector.cpp)
 target_link_libraries(messagehead_inspector ${catkin_LIBRARIES})
 add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
+
+add_executable(skeleton_repository src/RepositoryRosInteractor.cpp src/SkeletonRepository.cpp)
+target_link_libraries(skeleton_repository ${catkin_LIBRARIES})
+add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)

@@ -16,11 +16,11 @@ private:
     unsigned int image_width_;
     const double frame_offset_;
     
-    void save_skeletons(const tfpose_ros::Persons& persons_msg);
     boost::optional<skeleton3d::Skeleton3d> transform_skeleton_to_3d(
         const tfpose_ros::Person &person,
         const PointCloud::ConstPtr &point_cloud);
     bool any_coordinate_invalid(float x, float y, float z);
+    geometry_msgs::Point get_skeleton_center(skeleton3d::Skeleton3d &skeleton);
     
 public:
 SkeletonCreator(int scatter_distance, double frame_offset) : point_finder_scatter_distance_(scatter_distance), frame_offset_(frame_offset) {}
