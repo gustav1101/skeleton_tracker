@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include "SkeletonRepository.h"
 #include <skeleton3d/Skeletons3d.h>
-
+#include "exceptions.h"
 class RepositoryRosInteractor
 {
     using Skeleton = skeleton3d::Skeleton3d;

@@ -10,6 +10,16 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
 {
     double position_tolerance;
     ros::param::param<double>("~position_tolerance", position_tolerance, 0.3);
+    std::string input;
+    if (!ros::param::get("~skeleton_input", input, ""))
+    {
+        throw skeleton_exceptions::LackingRosParameter("skeleton_input");
+    };
+    std::string output;
+    if (!ros::param::get("~masterlist_output", input, ""))
+    {
+        throw skeleton_exceptions::LackingRosParameter("masterlist_output");
+    };
     return RepositoryRosInteractor::Params{ .position_tolerance = position_tolerance };
 }
 
