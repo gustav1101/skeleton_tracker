@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen">
+      <param name="position_tolerance" type="double" value="0.3" />
+      <param name="skeleton_input" type="str" value="/skeleton_to_3d/skeletons" />
+      <param name="masterlist_output" type="str" value="/skeleton_repository/masterlist" />
+    </node>
+</launch>
