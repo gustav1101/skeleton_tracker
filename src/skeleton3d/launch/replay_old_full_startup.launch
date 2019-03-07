@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="tfpose_output_topic" value="tfpose_ros/pose" />
+  <arg name="camera_name" value="myxtion" />
+  <arg name="skeleton_topic" value="skeleton_to_3d/skeleton" />
+  <arg name="sensor_namespace" value="sensor1" />
+
+  
+  <remap from="/myxtion/depth_registered/camera_info" to="/sensor1/myxtion/depth_registered/camera_info" />
+  <remap from="/myxtion/depth_registered/points" to="/sensor1/myxtion/depth_registered/points" />
+  <remap from="/myxtion/rgb/camera_info" to="/sensor1/myxtion/rgb/camera_info" />
+  <remap from="/myxtion/rgb/image_raw" to="/sensor1/myxtion/rgb/image_raw" />
+  <remap from="/pose_estimator/pose" to="/sensor1/pose_estimator/pose" />
+
+  
+  <include file="$(find skeleton3d)/launch/generate_skeleton3d.launch">
+    <arg name="sensor_namespace" value="$(arg sensor_namespace)" />
+    <arg name="skeleton_topic" value="$(arg skeleton_topic)" />
+  </include>
+  
+  <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen">
+    <param name="position_tolerance" type="double" value="0.3" />
+    <param name="skeleton_input" type="str" value="/$(arg sensor_namespace)/$(arg skeleton_topic)" />
+    <param name="masterlist_output" type="str" value="/skeleton3d/masterlist" />
+  </node>
+
+  <node name="skeleton_to_3d_vis" pkg="skeleton3d" type="skeleton_visualiser" output="screen">
+      <param name="input_skeleton" type="str" value="/skeleton3d/masterlist" />
+      <param name = "output_marker" type="str" value="/skeleton_to_3d_vis/skeleton_vis" />
+  </node>
+
+  <node type="rviz" name="rviz" pkg="rviz" />
+</launch>

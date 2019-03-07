@@ -1,8 +1,13 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="skeleton_to_3d" pkg="skeleton3d" type="point_projector" output="screen">
-      <param name="input_pose" type="str" value="/pose_estimator/pose" />
-      <param name="input_pointcloud" type="str" value="/myxtion/depth_registered/points" />
-      <param name="output_skeleton" type="str" value="/skeleton_to_3d/skeletons" />
-    </node>
+  <arg name="input_pose" default="pose_estimator/pose" />
+  <arg name="pointcloud" default="myxtion/depth_registered/points" />
+  <arg name="skeleton_topic" default="skeleton_to_3d/skeletons" />
+  <arg name="sensor_namespace" default="myskeletongenerator" />
+  
+  <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" ns="$(arg sensor_namespace)">
+    <param name="input_pose" type="str" value="/$(arg sensor_namespace)/$(arg input_pose)" />
+    <param name="input_pointcloud" type="str" value="/$(arg sensor_namespace)/$(arg pointcloud)" />
+    <param name="output_skeleton" type="str" value="/$(arg sensor_namespace)/$(arg skeleton_topic)" />
+  </node>
 </launch>

@@ -20,10 +20,10 @@ void RosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &perso
 void RosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons)
 {
     skeleton3d::Skeletons3d skeletons_msg;
-    skeletons_msg.skeletons = skeletons;
     skeletons_msg.header.stamp = ros::Time::now();
     skeletons_msg.header.frame_id = "/myxtion_depth_frame";
-
+    skeletons_msg.skeletons = skeletons;
+    
     skeleton3d_publisher_.publish(skeletons_msg);
 }
 

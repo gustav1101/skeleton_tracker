@@ -1,3 +1,4 @@
+#include <ros/ros.h>
 #include "SkeletonRepository.h"
 #include <math.h>
 #include <boost/range/combine.hpp>
@@ -11,21 +12,25 @@ SkeletonRepository::~SkeletonRepository() { }
 
 void SkeletonRepository::update_skeletons(const std::vector<Skeleton> &skeletons)
 {
+    ROS_INFO("AM ALIVE");
     for (const Skeleton &skeleton : skeletons)
     {
         optional<Skeleton&> existing_skeleton = find_skeleton_in_list(skeleton);
         if(existing_skeleton)
         {
             merge_skeleton(skeleton, *existing_skeleton);
+            ROS_INFO("MERGED");
         } else
         {
             insert_skeleton(skeleton);
+            ROS_INFO("INSERTED");
         }
     }
 }
 
 std::vector<Skeleton> SkeletonRepository::get_skeleton_masterlist()
 {
+    ROS_INFO("RETRIEVING MASTERLIST");
     return skeletons_masterlist_;
 }
 

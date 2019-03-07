@@ -75,7 +75,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Points
-      Topic: /myxtion/depth_registered/points
+      Topic: /sensor1/myxtion/depth_registered/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -127,7 +127,7 @@ Visualization Manager:
       Marker Topic: /skeleton_to_3d_vis/skeleton_vis
       Name: Marker
       Namespaces:
-        {}
+        skeleton_to_3d_vis: true
       Queue Size: 100
       Value: true
   Enabled: true
