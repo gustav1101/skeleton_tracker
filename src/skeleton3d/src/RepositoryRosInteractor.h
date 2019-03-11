@@ -9,6 +9,7 @@ class RepositoryRosInteractor
 private:
     struct Params {
         double position_tolerance;
+        double publish_rate;
         std::string subscriber_topic;
         std::string publisher_topic;
     };
@@ -20,10 +21,10 @@ private:
     ros::Timer publish_timer_;
     
     static Params read_params();
-    void setup_topics(const std::string &subscriber_topic, const std::string &publisher_topic);
+    void setup_topics(const std::string &subscriber_topic, const std::string &publisher_topic, const double &publish_rate);
     RepositoryRosInteractor(const Params params) : repository_(params.position_tolerance)
     {
-        setup_topics(params.subscriber_topic, params.publisher_topic);
+        setup_topics(params.subscriber_topic, params.publisher_topic, params.publish_rate);
     }
     void publish_masterlist(const ros::TimerEvent&);
     void update_masterlist(const skeleton3d::Skeletons3d::ConstPtr &msg);

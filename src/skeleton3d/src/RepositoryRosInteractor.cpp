@@ -10,6 +10,8 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
 {
     double position_tolerance;
     ros::param::param<double>("~position_tolerance", position_tolerance, 0.3);
+    double publish_rate;
+    ros::param::param<double>("~publish_rate", publish_rate, 0.15);
     std::string input;
     if (!ros::param::get("~skeleton_input", input))
     {
@@ -22,12 +24,13 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
     };
     return RepositoryRosInteractor::Params{
         .position_tolerance = position_tolerance,
+            .publish_rate = publish_rate,
             .subscriber_topic = input,
             .publisher_topic = output
             };
 }
 
-void RepositoryRosInteractor::setup_topics(const std::string &subscriber_topic, const std::string &publisher_topic)
+void RepositoryRosInteractor::setup_topics(const std::string &subscriber_topic, const std::string &publisher_topic, const double &publish_rate)
 {
     repository_subscriber_ = node_handle_.subscribe(
         subscriber_topic,
@@ -35,8 +38,8 @@ void RepositoryRosInteractor::setup_topics(const std::string &subscriber_topic, 
         &RepositoryRosInteractor::update_masterlist,
         this);
     repository_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(publisher_topic, 5);
-
-    publish_timer_ = node_handle_.createTimer(ros::Duration(0.15), &RepositoryRosInteractor::publish_masterlist, this);
+    ROS_INFO("Publishing with rate %f", publish_rate);
+    publish_timer_ = node_handle_.createTimer(ros::Duration(publish_rate), &RepositoryRosInteractor::publish_masterlist, this);
 }
 
 void RepositoryRosInteractor::publish_masterlist(const ros::TimerEvent&)
@@ -55,7 +58,7 @@ void RepositoryRosInteractor::publish_masterlist(const ros::TimerEvent&)
 
 void RepositoryRosInteractor::update_masterlist(const skeleton3d::Skeletons3d::ConstPtr &msg)
 {
-    repository_.update_skeletons(msg->skeletons);
+    repository_.update_skeletons(msg);
 }
 
 int main(int argc, char **argv)
