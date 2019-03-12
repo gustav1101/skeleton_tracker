@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="sensor_namespace" value="sensor_1" />
+  <arg name="camera_name" value="xtion_1" />
+  <arg name="skeleton_topic" value="skeleton3d/skeletons" />
+  
+  <include file="$(find tfpose_ros)/launch/camera_input.launch">
+    <arg name="camera_name" value="$(arg camera_name)" />
+    <arg name="sensor_namespace" value="$(arg sensor_namespace)" />
+  </include>
+
+  <include file="$(find skeleton3d)/launch/generate_skeleton3d.launch">
+    <arg name="sensor_namespace" value="$(arg sensor_namespace)" />
+    <arg name="skeleton_topic" value="$(arg skeleton_topic)" />
+    <arg name="pointcloud" value="$(arg camera_name)/depth/points" />
+  </include>
+
+  <node name="skeleton3d_vis" pkg="skeleton3d" type="skeleton_visualiser" output="screen">
+    <param name="input_skeleton" type="str" value="/$(arg sensor_namespace)/$(arg skeleton_topic)" />
+    <param name = "output_marker" type="str" value="/skeleton_to_3d_vis/skeleton_vis" />
+    <param name = "camera_name" type="str" value="$(arg camera_name)" />
+  </node>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find skeleton3d)/rviz/Skeleton_markers.rviz" />
+</launch>

@@ -148,7 +148,7 @@ void SkeletonVisualiser::publish_skeleton_markers(const std::vector<std::vector<
             ROS_WARN("Empty Consecutive line");
         }
         visualization_msgs::Marker skeleton_markers;
-        skeleton_markers.header.frame_id = "/myxtion_depth_optical_frame";
+        skeleton_markers.header.frame_id = "/" + get_param("~camera_name") + "_depth_optical_frame";
         skeleton_markers.header.stamp = ros::Time::now();
         skeleton_markers.ns = "skeleton_to_3d_vis";
         skeleton_markers.action = visualization_msgs::Marker::ADD;
