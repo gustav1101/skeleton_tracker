@@ -7,8 +7,14 @@ VisualiserRosInteractor::VisualiserRosInteractor()
 {
     setup_topics();
     camera_name_ = get_param("~camera_name");
+    ros::param::param<bool>("~decaying_lines", use_decaying_lines_, true);
 }
 
+void VisualiserRosInteractor::call_marker_construction(const skeleton3d::Skeletons3d::ConstPtr &skeletons_msg)
+{
+    std::vector<Line> all_consecutive_lines = SkeletonVisualiser::generate_skeletons_lines(skeletons_msg->skeletons);
+    publish_skeleton_markers(all_consecutive_lines);
+}
 
 void VisualiserRosInteractor::publish_skeleton_markers(const std::vector<Line> &all_consecutive_lines)
 {
@@ -20,10 +26,10 @@ void VisualiserRosInteractor::publish_skeleton_markers(const std::vector<Line> &
             ROS_WARN("Empty Consecutive line");
             continue;
         }
-
         visualization_msgs::Marker line_markers;
         set_marker_properties(line_markers);
         publish_line_markers(line_markers, consecutive_line);
+        skeleton_consecutive_line_id_++;
     }
 }
 
@@ -36,8 +42,7 @@ void VisualiserRosInteractor::publish_line_markers(visualization_msgs::Marker &l
 
 void VisualiserRosInteractor::set_marker_properties(visualization_msgs::Marker &line_marker)
 {
-    line_marker.id = skeleton_consecutive_line_id_++;
-
+    line_marker.id = skeleton_consecutive_line_id_;
     line_marker.header.frame_id = "/" + camera_name_ + "_depth_optical_frame";
     line_marker.header.stamp = ros::Time::now();
     line_marker.ns = "skeleton_to_3d_vis";
@@ -47,9 +52,11 @@ void VisualiserRosInteractor::set_marker_properties(visualization_msgs::Marker &
     line_marker.scale.x = 0.02;
     line_marker.color.b = 1.0;
     line_marker.color.a = 1.0;
-    line_marker.lifetime = ros::Duration(0.5);
+    if (use_decaying_lines_)
+    {
+        line_marker.lifetime = ros::Duration(0.5);
+    }
 }
-
 
 void VisualiserRosInteractor::setup_topics()
 {
@@ -63,12 +70,6 @@ void VisualiserRosInteractor::setup_topics()
         10);
 }
 
-void VisualiserRosInteractor::call_marker_construction(const skeleton3d::Skeletons3d::ConstPtr &skeletons_msg)
-{
-    std::vector<Line> all_consecutive_lines = SkeletonVisualiser::generate_skeletons_lines(skeletons_msg->skeletons);
-    publish_skeleton_markers(all_consecutive_lines);
-}
-
 std::string VisualiserRosInteractor::get_param(const std::string &param_name)
 {
     std::string param;
@@ -79,8 +80,6 @@ std::string VisualiserRosInteractor::get_param(const std::string &param_name)
     }
     return param;
 }
-
-
 
 int main(int argc, char** argv)
 {

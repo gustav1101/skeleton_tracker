@@ -18,6 +18,7 @@ private:
     ros::Publisher marker_publisher_;
     std::string camera_name_;
     int skeleton_consecutive_line_id_;
+    bool use_decaying_lines_;
     
     void setup_topics();
     void call_marker_construction(const skeleton3d::Skeletons3d::ConstPtr &skeletons);
