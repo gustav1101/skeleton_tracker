@@ -4,10 +4,12 @@
   <arg name="pointcloud" default="myxtion/depth_registered/points" />
   <arg name="skeleton_topic" default="skeleton_to_3d/skeletons" />
   <arg name="sensor_namespace" default="myskeletongenerator" />
+  <arg name="camera_name" default="myxtion" />
   
   <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" ns="$(arg sensor_namespace)">
     <param name="input_pose" type="str" value="/$(arg sensor_namespace)/$(arg input_pose)" />
     <param name="input_pointcloud" type="str" value="/$(arg sensor_namespace)/$(arg pointcloud)" />
     <param name="output_skeleton" type="str" value="/$(arg sensor_namespace)/$(arg skeleton_topic)" />
+    <param name="camera_name" type="str" value="$(arg camera_name)" />
   </node>
 </launch>

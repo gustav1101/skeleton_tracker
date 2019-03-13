@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="tfpose_output_topic" value="tfpose_ros/pose" />
-  <arg name="camera_name" value="xtion1" />
+  <arg name="camera_name" value="myxtion" />
   <arg name="skeleton_topic" value="skeleton_to_3d/skeleton" />
   <arg name="sensor_namespace" value="sensor1" />
   
   <include file="$(find skeleton3d)/launch/generate_skeleton3d.launch">
-    <arg name="pointcloud" value="xtion1/depth_registered/points" />
+    <arg name="pointcloud" value="$(arg camera_name)/depth_registered/points" />
     <arg name="sensor_namespace" value="$(arg sensor_namespace)" />
     <arg name="skeleton_topic" value="$(arg skeleton_topic)" />
+    <arg name="camera_name" value="$(arg camera_name)" />
   </include>
   
   <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen">

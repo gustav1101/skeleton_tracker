@@ -1,37 +1,43 @@
-#include "RosInteractor.h"
+#include "SkeletonCreatorRosInteractor.h"
 #include <skeleton3d/Skeletons3d.h>
 #include "exceptions.h"
 
 
-RosInteractor::~RosInteractor()
+SkeletonCreatorRosInteractor SkeletonCreatorRosInteractor::get_ros_interactor()
+{
+    return SkeletonCreatorRosInteractor(read_params());
+}
+
+SkeletonCreatorRosInteractor::~SkeletonCreatorRosInteractor()
 {
     delete message_synchronizer_;
     delete skeleton_subscriber_;
     delete pointcloud_subscriber_;
 }
 
-void RosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
+void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
 {
     skeleton_creator_.set_image_size(persons_msg->image_w, persons_msg->image_h);
     std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeleton(persons_msg->persons, point_cloud);
     publish_skeletons(skeletons);
 }
 
-void RosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons)
+void SkeletonCreatorRosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons)
 {
     skeleton3d::Skeletons3d skeletons_msg;
     skeletons_msg.header.stamp = ros::Time::now();
-    skeletons_msg.header.frame_id = "/myxtion_depth_frame";
+    skeletons_msg.header.frame_id = "/" + camera_name_ + "_depth_frame";
     skeletons_msg.skeletons = skeletons;
     
     skeleton3d_publisher_.publish(skeletons_msg);
 }
 
-RosInteractor::RosParams RosInteractor::read_params()
+SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_params()
 {
     std::string pose_topic_name = get_param("~input_pose");
     std::string pointcloud_topic_name = get_param("~input_pointcloud");
     std::string skeleton_topic_name = get_param("~output_skeleton");
+    std::string camera_name = get_param("~camera_name");
     double frame_offset;
     ros::param::param<double>("~x_frame_offset", frame_offset, 10.0);
     int scatter_distance;
@@ -41,11 +47,12 @@ RosInteractor::RosParams RosInteractor::read_params()
         .pose_topic_name = pose_topic_name,
             .pointcloud_topic_name = pointcloud_topic_name,
             .skeleton_topic_name = skeleton_topic_name,
+            .camera_name = camera_name,
             .scatter_distance = scatter_distance,
             .x_frame_offset = frame_offset};
 }
 
-std::string RosInteractor::get_param(const std::string &param_name)
+std::string SkeletonCreatorRosInteractor::get_param(const std::string &param_name)
 {
     std::string param;
     if (!ros::param::get(param_name, param))
@@ -55,7 +62,7 @@ std::string RosInteractor::get_param(const std::string &param_name)
     return param;
 }
 
-void RosInteractor::create_listeners(const std::string &pose_topic_name, const std::string &pointcloud_topic_name)
+void SkeletonCreatorRosInteractor::create_listeners(const std::string &pose_topic_name, const std::string &pointcloud_topic_name)
 {
     skeleton_subscriber_ = new message_filters::Subscriber<tfpose_ros::Persons>(
         node_handle_,
@@ -71,10 +78,10 @@ void RosInteractor::create_listeners(const std::string &pose_topic_name, const s
         *skeleton_subscriber_,
         *pointcloud_subscriber_);
     message_synchronizer_->registerCallback(
-        boost::bind(&RosInteractor::generate_skeleton, this, _1, _2));
+        boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
 }
 
-void RosInteractor::create_publisher(const std::string &skeleton_topic_name)
+void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_topic_name)
 {
     skeleton3d_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
         skeleton_topic_name,
@@ -84,10 +91,9 @@ void RosInteractor::create_publisher(const std::string &skeleton_topic_name)
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "skeleton_to_3d");
-    RosInteractor::RosParams parameters = RosInteractor::read_params();
     try
     {
-        RosInteractor ros_interactor(parameters);
+        SkeletonCreatorRosInteractor interactor = SkeletonCreatorRosInteractor::get_ros_interactor();
         ros::spin();
     } catch (skeleton_exceptions::LackingRosParameter &e)
     {
