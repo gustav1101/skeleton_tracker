@@ -39,7 +39,7 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
     std::string skeleton_topic_name = get_param("~output_skeleton");
     std::string camera_name = get_param("~camera_name");
     double frame_offset;
-    ros::param::param<double>("~x_frame_offset", frame_offset, 10.0);
+    ros::param::param<double>("~x_frame_offset", frame_offset, 0.0);
     int scatter_distance;
     ros::param::param<int>("~scatter_distance", scatter_distance, 6);
 

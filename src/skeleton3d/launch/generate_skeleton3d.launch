@@ -11,5 +11,6 @@
     <param name="input_pointcloud" type="str" value="/$(arg sensor_namespace)/$(arg pointcloud)" />
     <param name="output_skeleton" type="str" value="/$(arg sensor_namespace)/$(arg skeleton_topic)" />
     <param name="camera_name" type="str" value="$(arg camera_name)" />
+    <param name="x_frame_offset" type="double" value="1.0" />
   </node>
 </launch>
