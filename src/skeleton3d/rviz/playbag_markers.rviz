@@ -76,7 +76,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Points
-      Topic: /sensor1/myxtion/depth_registered/points
+      Topic: /sensor1/xtion1/depth_registered/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -86,15 +86,15 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        myxtion_depth_frame:
+        xtion1_depth_frame:
           Value: true
-        myxtion_depth_optical_frame:
+        xtion1_depth_optical_frame:
           Value: true
-        myxtion_link:
+        xtion1_link:
           Value: true
-        myxtion_rgb_frame:
+        xtion1_rgb_frame:
           Value: true
-        myxtion_rgb_optical_frame:
+        xtion1_rgb_optical_frame:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -102,12 +102,12 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        myxtion_link:
-          myxtion_depth_frame:
-            myxtion_depth_optical_frame:
+        xtion1_link:
+          xtion1_depth_frame:
+            xtion1_depth_optical_frame:
               {}
-          myxtion_rgb_frame:
-            myxtion_rgb_optical_frame:
+          xtion1_rgb_frame:
+            xtion1_rgb_optical_frame:
               {}
       Update Interval: 0
       Value: true
@@ -135,7 +135,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: myxtion_link
+    Fixed Frame: xtion1_link
     Frame Rate: 30
   Name: root
   Tools:

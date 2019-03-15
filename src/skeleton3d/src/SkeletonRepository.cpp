@@ -85,7 +85,7 @@ inline double SkeletonRepository::distance_between_points(const Point &point1, c
 {
 	// Taxicap metric is sufficient here since we'll be comparing the result
 	// with an arbitrary number anyway.
-    return abs(point1.x-point2.x) + abs(point1.y-point2.y) + abs(point1.z - point2.z); //sqrt(pow(point1.x-point2.x, 2) + pow(point1.y-point2.y, 2) + pow(point1.z - point2.z, 2));
+    return fabs(point1.x-point2.x) + fabs(point1.y-point2.y) + fabs(point1.z - point2.z); //sqrt(pow(point1.x-point2.x, 2) + pow(point1.y-point2.y, 2) + pow(point1.z - point2.z, 2));
 }
 
 Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPart> &body_parts)

@@ -70,7 +70,12 @@ geometry_msgs::Point PointFinder::find_best_point(const std::vector<geometry_msg
 
 boost::optional<geometry_msgs::Point> PointFinder::create_Point3d(Point2d &point2d)
 {
+    if(point2d.x > image_max_x_ || point2d.y > image_max_y_)
+    {
+        throw std::out_of_range("Point Cloud illegal coordinates queried");
+    }
     pcl::PointXYZ point_in_pointcloud = point_cloud_->at(point2d.x, point2d.y);
+    
     geometry_msgs::Point point3d;
     if (any_coordinate_invalid(point_in_pointcloud.x,
                                point_in_pointcloud.y,
@@ -91,8 +96,8 @@ inline bool PointFinder::any_coordinate_invalid(float x, float y, float z)
 
 void PointFinder::set_window_boundaries(unsigned int image_max_x, unsigned int image_max_y)
 {
-    image_max_x_ = image_max_x;
-    image_max_y_ = image_max_y;
+    image_max_x_ = image_max_x-1;
+    image_max_y_ = image_max_y-1;
 }
 
 void PointFinder::set_point_cloud(const PointCloud::ConstPtr &point_cloud)
