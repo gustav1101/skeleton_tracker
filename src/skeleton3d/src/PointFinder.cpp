@@ -19,7 +19,7 @@ boost::optional<geometry_msgs::Point> PointFinder::find_best_point_around_coordi
     std::vector<geometry_msgs::Point> scattered_points = create_scattered_points(center_point_2d);
     if (scattered_points.size() == 0 )
     {
-        ROS_WARN("Could not find points at designated coordinates");
+        //ROS_WARN("Could not find points around designated coordinates: x=%i; y=%i", x,y);
         return boost::none;
     }
     boost::optional<geometry_msgs::Point> center_point_3d = create_Point3d(center_point_2d);
