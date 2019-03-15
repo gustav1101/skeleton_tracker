@@ -62,9 +62,14 @@ geometry_msgs::Point PointFinder::find_best_point(const std::vector<geometry_msg
                          return point1.z < point2.z;
                      });
     
-    geometry_msgs::Point best_point(center_point);
-    best_point.z = best_depth_point.z;
-    
+    geometry_msgs::Point best_point;
+    if( best_depth_point.z + DEPTH_TOLERANCE_ < center_point.z )
+    {
+        best_point = geometry_msgs::Point(best_depth_point);
+    } else
+    {
+        best_point = geometry_msgs::Point(center_point);
+    }
     return best_point;
 }
 

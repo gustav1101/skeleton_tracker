@@ -10,6 +10,7 @@
     <arg name="sensor_namespace" value="$(arg sensor_namespace)" />
     <arg name="skeleton_topic" value="$(arg skeleton_topic)" />
     <arg name="camera_name" value="$(arg camera_name)" />
+    <arg name="scatter_distance" value="3" />
   </include>
   
   <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen">

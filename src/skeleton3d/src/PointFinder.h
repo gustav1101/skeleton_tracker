@@ -30,7 +30,8 @@ private:
     PointCloud::ConstPtr point_cloud_;
     const int SCATTER_DISTANCE_;
     const double frame_offset_;
-
+    const double DEPTH_TOLERANCE_ = 0.1;
+    
     Point2d absolute_coordinates(float &relative_x, float &relative_y);
     std::vector<geometry_msgs::Point> create_scattered_points(
         Point2d &center_point);
