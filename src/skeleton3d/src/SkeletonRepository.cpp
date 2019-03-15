@@ -4,6 +4,7 @@
 #include <boost/algorithm/clamp.hpp>
 
 using Skeleton = skeleton3d::Skeleton3d;
+using BodyPart = skeleton3d::BodyPart3d;
 using Point = geometry_msgs::Point;
 template<class T> using optional = boost::optional<T>;
 
@@ -29,6 +30,7 @@ void SkeletonRepository::update_skeletons(const skeleton3d::Skeletons3d::ConstPt
 
 std::vector<Skeleton> SkeletonRepository::get_skeleton_masterlist()
 {
+    decay_masterlist();
     std::vector<Skeleton> skeletons;
     for (const SkeletonInformation &skeleton_info : skeletons_masterlist_)
     {
@@ -142,12 +144,15 @@ void SkeletonRepository::merge_skeleton(const Skeleton &new_skeleton, SkeletonIn
     }
 }
 
-inline bool SkeletonRepository::should_update(const BodyPartInformation &body_part_new, const BodyPartInformation &body_part_existing)
+inline bool SkeletonRepository::should_update(const BodyPartInformation &body_part_new_info, const BodyPartInformation &body_part_existing_info)
 {
-    double time_since_message = boost::algorithm::clamp( (body_part_new.timestamp - body_part_existing.timestamp ).toSec(), 0.0, 2.0 );
-    return body_part_new.body_part.confidence + time_since_message * 1.5 > body_part_existing.body_part.confidence + 0.05;
+    const BodyPart &body_part_new = body_part_new_info.body_part;
+    const BodyPart &body_part_old = body_part_existing_info.body_part;
+    // Update the body part only if the new part is valid AND the old part is either invalid
+    // or has a lower confidence.
+    return body_part_new.part_is_valid && ( !body_part_old.part_is_valid) ||
+        (body_part_new.confidence > body_part_old.confidence);
 }
-
 
 void SkeletonRepository::insert_skeleton(const Skeleton &new_skeleton, const ros::Time &timestamp)
 {
@@ -160,3 +165,49 @@ void SkeletonRepository::insert_skeleton(const Skeleton &new_skeleton, const ros
     skeletons_masterlist_.push_back(skeleton_info);
 }
 
+void SkeletonRepository::decay_masterlist()
+{
+    if (DECAY_STRENGTH_ == 0.0)
+    {
+        return;
+    }
+    for (auto masterlist_iter = skeletons_masterlist_.begin(); masterlist_iter != skeletons_masterlist_.end(); masterlist_iter++) //SkeletonInformation &skeleton_info : skeletons_masterlist_)
+    {
+        if (decay_skeleton(*masterlist_iter))
+        {
+            auto to_delete_iter = masterlist_iter;
+            masterlist_iter--;
+            skeletons_masterlist_.erase(to_delete_iter);
+        }
+    }
+}
+
+// Return true iff the Skeleton has only invalid bodyparts and thus should be removed
+bool SkeletonRepository::decay_skeleton(SkeletonInformation &skeleton_information)
+{
+    bool remove_skeleton = true;
+    for (BodyPartInformation &body_part_info : skeleton_information.body_part_information)
+    {
+        remove_skeleton &= decay_bodypart(body_part_info);
+    }
+    return remove_skeleton;
+}
+
+// Return True iff part has decayed to the point of being invalid (confidence <= 0 )
+bool SkeletonRepository::decay_bodypart(BodyPartInformation &body_part_info)
+{
+    BodyPart &body_part = body_part_info.body_part;
+    
+    double time_since_message = boost::algorithm::clamp( (ros::Time::now() - body_part_info.timestamp ).toSec(), 0.0, DBL_MAX );
+    body_part.confidence -= time_since_message * DECAY_STRENGTH_;
+
+    // Check if body part has decayed so much that it should be removed
+    if(body_part.confidence <= 0.0)
+    {
+        body_part_info.body_part.part_is_valid = false;
+        return true;
+    } else
+    {
+        return false;
+    }
+}

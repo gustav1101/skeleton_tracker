@@ -2,9 +2,16 @@
 #include <boost/algorithm/clamp.hpp>
 #include <stdexcept>
 
+using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
+
 boost::optional<geometry_msgs::Point> PointFinder::find_best_point_around_coordinates(
     float relative_x, float relative_y)
 {
+    if ( image_max_x_ == 0 || image_max_y_ == 0 || !point_cloud_ )
+    {
+        throw std::runtime_error("Pointcloud not completly initialised!");
+    }
+    
     unsigned int x = relative_x * image_max_x_ + frame_offset_;
     unsigned int y = relative_y * image_max_y_;
     Point2d center_point_2d{.x = x, .y = y};
@@ -69,7 +76,6 @@ boost::optional<geometry_msgs::Point> PointFinder::create_Point3d(Point2d &point
                                point_in_pointcloud.y,
                                point_in_pointcloud.z))
     {
-        ROS_WARN("NAN encountered, discarding message");
         return boost::none;
     }
     point3d.x = point_in_pointcloud.x;
@@ -83,3 +89,13 @@ inline bool PointFinder::any_coordinate_invalid(float x, float y, float z)
     return std::isnan(x) || std::isnan(y) || std::isnan(z);
 }
 
+void PointFinder::set_window_boundaries(unsigned int image_max_x, unsigned int image_max_y)
+{
+    image_max_x_ = image_max_x;
+    image_max_y_ = image_max_y;
+}
+
+void PointFinder::set_point_cloud(const PointCloud::ConstPtr &point_cloud)
+{
+    point_cloud_ = point_cloud;
+}

@@ -2,6 +2,9 @@
 #include <skeleton3d/Skeletons3d.h>
 #include "exceptions.h"
 
+using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
+using MySyncPolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
+
 
 SkeletonCreatorRosInteractor SkeletonCreatorRosInteractor::get_ros_interactor()
 {
@@ -17,7 +20,11 @@ SkeletonCreatorRosInteractor::~SkeletonCreatorRosInteractor()
 
 void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
 {
-    skeleton_creator_.set_image_size(persons_msg->image_w, persons_msg->image_h);
+    if (!window_boundaries_set_)
+    {
+        skeleton_creator_.set_image_size(persons_msg->image_w, persons_msg->image_h);
+        window_boundaries_set_ = true;
+    }
     std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeleton(persons_msg->persons, point_cloud);
     publish_skeletons(skeletons);
 }

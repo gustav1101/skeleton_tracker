@@ -10,6 +10,7 @@ private:
     struct Params {
         double position_tolerance;
         double publish_rate;
+        double decay_strength;
         std::string subscriber_topic;
         std::string publisher_topic;
     };
@@ -22,7 +23,7 @@ private:
     
     static Params read_params();
     void setup_topics(const std::string &subscriber_topic, const std::string &publisher_topic, const double &publish_rate);
-    RepositoryRosInteractor(const Params params) : repository_(params.position_tolerance)
+    RepositoryRosInteractor(const Params params) : repository_(params.position_tolerance, params.decay_strength)
     {
         setup_topics(params.subscriber_topic, params.publisher_topic, params.publish_rate);
     }

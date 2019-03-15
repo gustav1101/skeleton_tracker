@@ -5,11 +5,11 @@
 #include <sensor_msgs/PointCloud2.h>
 #include "SkeletonCreator.h"
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-typedef message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud> MySyncPolicy;
-
 class SkeletonCreatorRosInteractor
 {
+    using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
+    using MySyncPolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
+    
 public:
     static SkeletonCreatorRosInteractor get_ros_interactor();
     ~SkeletonCreatorRosInteractor();
@@ -33,6 +33,7 @@ private:
     message_filters::Synchronizer<MySyncPolicy> *message_synchronizer_;
     ros::Publisher skeleton3d_publisher_;
     std::string camera_name_;
+    bool window_boundaries_set_ = false;
     
     SkeletonCreatorRosInteractor(const RosParams params) : skeleton_creator_(params.scatter_distance, params.x_frame_offset), camera_name_(params.camera_name)
     {

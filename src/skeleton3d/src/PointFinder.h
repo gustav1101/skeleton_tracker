@@ -4,10 +4,21 @@
 #include <pcl/point_types.h>
 #include <boost/optional.hpp>
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-
 class PointFinder
 {
+    using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
+
+public:
+    PointFinder(
+        int scatter_distance, double frame_offset) :
+        SCATTER_DISTANCE_(scatter_distance), frame_offset_(frame_offset){ };
+    ~PointFinder() { };
+
+    void set_window_boundaries(unsigned int image_max_x, unsigned int image_max_y);
+    void set_point_cloud(const PointCloud::ConstPtr &point_cloud);
+    boost::optional<geometry_msgs::Point> find_best_point_around_coordinates(
+        float relative_x, float relative_y);
+
 private:
     struct Point2d {
         unsigned int x;
@@ -16,7 +27,7 @@ private:
 
     unsigned int image_max_x_;
     unsigned int image_max_y_;
-    const PointCloud::ConstPtr point_cloud_;
+    PointCloud::ConstPtr point_cloud_;
     const int SCATTER_DISTANCE_;
     const double frame_offset_;
 
@@ -27,14 +38,4 @@ private:
         Point2d &point2d);
     geometry_msgs::Point find_best_point(const std::vector<geometry_msgs::Point> &possible_points, const geometry_msgs::Point &center_point);
     inline bool any_coordinate_invalid(float x, float y, float z);
-
-public:
-PointFinder(
-    unsigned int image_max_x, unsigned int image_max_y,
-    const PointCloud::ConstPtr &point_cloud,
-    int scatter_distance, double frame_offset) : image_max_x_(image_max_x), image_max_y_(image_max_y), point_cloud_(point_cloud), SCATTER_DISTANCE_(scatter_distance), frame_offset_(frame_offset){ };
-    ~PointFinder() { };
-
-    boost::optional<geometry_msgs::Point> find_best_point_around_coordinates(
-        float relative_x, float relative_y);
 };
