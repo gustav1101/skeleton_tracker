@@ -90,38 +90,43 @@ inline double SkeletonRepository::distance_between_points(const Point &point1, c
 
 Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPart> &body_parts)
 {
-    Point center;
-    center.x = 0;
-    center.y = 0;
-    center.z = 0;
-    for(const BodyPart &body_part : body_parts)
-    {
-        center.x += body_part.point.x;
-        center.y += body_part.point.y;
-        center.z += body_part.point.z;
-    }
-    center.x /= body_parts.size();
-    center.y /= body_parts.size();
-    center.z /= body_parts.size();
-    return center;
+    std::vector<const BodyPart*> interesting_parts;
+    interesting_parts.push_back(&body_parts.at(0));
+    interesting_parts.push_back(&body_parts.at(1));
+
+    return calculate_center_point(interesting_parts);
 }
 
-Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPartInformation> &body_parts)
+Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPartInformation> &body_parts_info)
 {
-    Point center;
-    center.x = 0;
-    center.y = 0;
-    center.z = 0;
-    for(const BodyPartInformation &body_part_info : body_parts)
+    std::vector<const BodyPart*> interesting_parts;
+    interesting_parts.push_back(&body_parts_info.at(0).body_part);
+    interesting_parts.push_back(&body_parts_info.at(1).body_part);
+    
+    return calculate_center_point(interesting_parts);
+}
+
+Point SkeletonRepository::calculate_center_point(const std::vector<const BodyPart*> body_parts)
+{
+    Point centerpoint;
+    centerpoint.x = 0;
+    centerpoint.y = 0;
+    centerpoint.z = 0;
+    int valid_point_counter = 0;
+    for(const BodyPart * const body_part : body_parts)
     {
-        center.x += body_part_info.body_part.point.x;
-        center.y += body_part_info.body_part.point.y;
-        center.z += body_part_info.body_part.point.z;
+        if ( body_part->part_is_valid )
+        {
+            centerpoint.x += body_part->point.x;
+            centerpoint.y += body_part->point.y;
+            centerpoint.z += body_part->point.z;
+            valid_point_counter++;
+        }
     }
-    center.x /= body_parts.size();
-    center.y /= body_parts.size();
-    center.z /= body_parts.size();
-    return center;
+    centerpoint.x /= valid_point_counter;
+    centerpoint.y /= valid_point_counter;
+    centerpoint.z /= valid_point_counter;
+    return centerpoint;
 }
 
 void SkeletonRepository::merge_skeleton(const Skeleton &new_skeleton, SkeletonInformation &existing_skeleton, const ros::Time &timestamp)

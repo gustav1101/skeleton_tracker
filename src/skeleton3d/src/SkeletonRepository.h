@@ -35,6 +35,7 @@ private:
     optional<SkeletonInformation&> find_skeleton_in_list(const Skeleton &new_skeleton);
     Point get_skeleton_center_position(const std::vector<BodyPart> &body_parts);
     Point get_skeleton_center_position(const std::vector<BodyPartInformation> &body_parts);
+    Point calculate_center_point(const std::vector<const BodyPart*> body_parts);
     bool is_same_skeleton(const Skeleton &skel1, const SkeletonInformation &skel2);
     void merge_skeleton(const Skeleton &new_skeleton, SkeletonInformation &exisiting_skeleton, const ros::Time &timestamp);
     void insert_skeleton(const Skeleton &new_skeleton, const ros::Time &timestamp);
