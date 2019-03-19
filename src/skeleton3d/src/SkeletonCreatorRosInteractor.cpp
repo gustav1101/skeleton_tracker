@@ -3,7 +3,7 @@
 #include "exceptions.h"
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
-using MySyncPolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
+using ApproximateTimePolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
 
 
 SkeletonCreatorRosInteractor SkeletonCreatorRosInteractor::get_ros_interactor()
@@ -14,7 +14,7 @@ SkeletonCreatorRosInteractor SkeletonCreatorRosInteractor::get_ros_interactor()
 SkeletonCreatorRosInteractor::~SkeletonCreatorRosInteractor()
 {
     delete message_synchronizer_;
-    delete skeleton_subscriber_;
+    delete tfpose_subscriber_;
     delete pointcloud_subscriber_;
 }
 
@@ -36,7 +36,7 @@ void SkeletonCreatorRosInteractor::publish_skeletons(std::vector<skeleton3d::Ske
     skeletons_msg.header.frame_id = "/" + camera_name_ + "_depth_frame";
     skeletons_msg.skeletons = skeletons;
     
-    skeleton3d_publisher_.publish(skeletons_msg);
+    skeleton_publisher_.publish(skeletons_msg);
 }
 
 SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_params()
@@ -71,7 +71,7 @@ std::string SkeletonCreatorRosInteractor::get_param(const std::string &param_nam
 
 void SkeletonCreatorRosInteractor::create_listeners(const std::string &pose_topic_name, const std::string &pointcloud_topic_name)
 {
-    skeleton_subscriber_ = new message_filters::Subscriber<tfpose_ros::Persons>(
+    tfpose_subscriber_ = new message_filters::Subscriber<tfpose_ros::Persons>(
         node_handle_,
         pose_topic_name,
         INPUT_QUEUE_SIZE_);
@@ -80,9 +80,9 @@ void SkeletonCreatorRosInteractor::create_listeners(const std::string &pose_topi
         pointcloud_topic_name,
         INPUT_QUEUE_SIZE_);
 
-    message_synchronizer_ = new message_filters::Synchronizer<MySyncPolicy>(
-        MySyncPolicy(INPUT_QUEUE_SIZE_),
-        *skeleton_subscriber_,
+    message_synchronizer_ = new message_filters::Synchronizer<ApproximateTimePolicy>(
+        ApproximateTimePolicy(INPUT_QUEUE_SIZE_),
+        *tfpose_subscriber_,
         *pointcloud_subscriber_);
     message_synchronizer_->registerCallback(
         boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
@@ -90,7 +90,7 @@ void SkeletonCreatorRosInteractor::create_listeners(const std::string &pose_topi
 
 void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_topic_name)
 {
-    skeleton3d_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
+    skeleton_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
         skeleton_topic_name,
         50);
 }

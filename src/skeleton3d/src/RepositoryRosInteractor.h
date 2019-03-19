@@ -6,6 +6,10 @@ class RepositoryRosInteractor
 {
     using Skeleton = skeleton3d::Skeleton3d;
 
+public:
+    ~RepositoryRosInteractor() {};
+    static RepositoryRosInteractor get_repository_interactor();
+
 private:
     struct Params {
         double position_tolerance;
@@ -29,10 +33,4 @@ private:
     }
     void publish_masterlist(const ros::TimerEvent&);
     void update_masterlist(const skeleton3d::Skeletons3d::ConstPtr &msg);
-
-public:
-
-    ~RepositoryRosInteractor() {};
-    static RepositoryRosInteractor get_repository_interactor();
-    
 };
