@@ -10,7 +10,15 @@
  *
  * This module handles all ros interaction (publishing, subscribing, ...) for the Skeleton Creator. It listens for the tf pose and the pointcloud and calls the SkeletonCreator to generate the skeleton. Both messages (pointcloud and pose) need to have similar timestamps, otherwise the callback will not be called.
  * SkeletonCreator then uses this module to publish the resulting skeletons on a corresponding ros topic.
- * This module also handles reading and passing on of node parameters, some of which are required (@see SkeletonCreatorRosinteractor::RosParams).
+ * This module also handles reading and passing on of node parameters, some of which are required. The parameters are as follows:
+ * Name             | Type   | defaults | Description
+ * ---------------- | ------ | -------- | ----------------------------------------------------
+ * input_pose       | String | required | Name of tf pose topic (for subscribing)
+ * input_pointcloud | String | required | Name of pointcloud topic (for subscribing)
+ * output_skeleton  | String | required | Name of skeleton topic (for publishing)
+ * camera_name      | String | required | Name of the camera, used to generate tf frame name
+ * x_frame_offset   | double | 0.0      | X offset for depth image against tf pose coorinates
+ * scatter_distance | int    | 6        | Scatter Distance for PointFinder
  */
 class SkeletonCreatorRosInteractor
 {
@@ -42,6 +50,10 @@ private:
     SkeletonCreator skeleton_creator_;
     ros::NodeHandle node_handle_;
     /** Subscriber to the tf openpose topic */
+    /* Note that the subscribers and synchronizer are set as pointers because
+     * they are set in their own methods to avoid cluttering (and thus they cannot be
+     * initialised in the initialization list).
+     */
     message_filters::Subscriber<tfpose_ros::Persons> *tfpose_subscriber_;
     /** Pointcloud subscriber for retrieving depth information */
     message_filters::Subscriber<PointCloud> *pointcloud_subscriber_;
@@ -51,7 +63,7 @@ private:
     ros::Publisher skeleton_publisher_;
     /** Camera name, needed for frame id name in each message header */
     std::string camera_name_;
-    /** Boundaries need to be set before camera input can be evaluated. This happens in @see generate_skeletons(). */
+    /** Boundaries need to be set before camera input can be evaluated. This happens in generate_skeletons(). */
     bool window_boundaries_set_ = false;
 
     

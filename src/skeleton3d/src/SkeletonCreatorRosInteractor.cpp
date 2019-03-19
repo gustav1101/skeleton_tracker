@@ -20,9 +20,10 @@ SkeletonCreatorRosInteractor::~SkeletonCreatorRosInteractor()
 
 void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
 {
+    // On the first call of this method: Set the window size properties on the skeleton creator
     if (!window_boundaries_set_)
     {
-        skeleton_creator_.set_image_size(point_cloud->width, point_cloud->height);//persons_msg->image_w, persons_msg->image_h);
+        skeleton_creator_.set_image_size(point_cloud->width, point_cloud->height);
         window_boundaries_set_ = true;
     }
     std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeleton(persons_msg->persons, point_cloud);
