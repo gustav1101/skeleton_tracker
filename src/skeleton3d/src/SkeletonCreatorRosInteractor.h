@@ -27,13 +27,6 @@ class SkeletonCreatorRosInteractor
     
 public:
     /**
-     * Factory method for the interactor. Reads parameters given to node to create Interactor.
-     */
-    static SkeletonCreatorRosInteractor get_ros_interactor();
-    ~SkeletonCreatorRosInteractor();
-
-private:
-    /**
      * Data structure that can hold all parameters for this program.
      */
     struct RosParams{
@@ -45,20 +38,59 @@ private:
         const double x_frame_offset;
     };
 
+    /**
+     * Constructor. Sets up subscribers and listeners.
+     *
+     * @param [in] params RosParams with all fields specified.
+     */
+    SkeletonCreatorRosInteractor(const RosParams params) :
+        skeleton_creator_(params.scatter_distance, params.x_frame_offset),
+        tfpose_subscriber_(
+            node_handle_,
+            params.pose_topic_name,
+            INPUT_QUEUE_SIZE_),
+        pointcloud_subscriber_(
+            node_handle_,
+            params.pointcloud_topic_name,
+            INPUT_QUEUE_SIZE_),
+        message_synchronizer_(
+            ApproximateTimePolicy(INPUT_QUEUE_SIZE_),
+            tfpose_subscriber_,
+            pointcloud_subscriber_),
+        camera_name_(params.camera_name)
+    {
+        message_synchronizer_.registerCallback(
+            boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
+        create_publisher(params.skeleton_topic_name);
+    }
+    
+    ~SkeletonCreatorRosInteractor() {}
+
+    /**
+     * Reads parameters given to this node.
+     *
+     * See SkeletonCreatorRosInteractor class description for details on parameters.
+     * This method will set default values for the frame offset (0.0) and for the scatter distance (6). All opther values do not default and need to be specified.
+     * @return The RosParams instance holding all parameters.
+     */
+    static RosParams read_params();
+
+private:
+
     /** Sets size for all queues in subscribers and synchronizers. */
     static const int INPUT_QUEUE_SIZE_ = 30;
-    SkeletonCreator skeleton_creator_;
     ros::NodeHandle node_handle_;
+    SkeletonCreator skeleton_creator_;
     /** Subscriber to the tf openpose topic */
     /* Note that the subscribers and synchronizer are set as pointers because
      * they are set in their own methods to avoid cluttering (and thus they cannot be
      * initialised in the initialization list).
      */
-    message_filters::Subscriber<tfpose_ros::Persons> *tfpose_subscriber_;
+    message_filters::Subscriber<tfpose_ros::Persons> tfpose_subscriber_;
     /** Pointcloud subscriber for retrieving depth information */
-    message_filters::Subscriber<PointCloud> *pointcloud_subscriber_;
+    message_filters::Subscriber<PointCloud> pointcloud_subscriber_;
     /** Synchronizer between depth and pose messages */
-    message_filters::Synchronizer<ApproximateTimePolicy> *message_synchronizer_;
+    message_filters::Synchronizer<ApproximateTimePolicy> message_synchronizer_;
     /** Output topic for skeletons */
     ros::Publisher skeleton_publisher_;
     /** Camera name, needed for frame id name in each message header */
@@ -66,27 +98,6 @@ private:
     /** Boundaries need to be set before camera input can be evaluated. This happens in generate_skeletons(). */
     bool window_boundaries_set_ = false;
 
-    
-    /**
-     * Constructor. Sets up subscribers and listeners.
-     *
-     * @param [in] params RosParams with all fields specified.
-     */
-    SkeletonCreatorRosInteractor(const RosParams params) : skeleton_creator_(params.scatter_distance, params.x_frame_offset), camera_name_(params.camera_name)
-    {
-        create_listeners(params.pose_topic_name, params.pointcloud_topic_name);
-        create_publisher(params.skeleton_topic_name);
-    }
-    
-    /**
-     * Reads parameters given to this node.
-     *
-     * @See SkeletonCreatorRosInteractor::RosParams for details on parameters.
-     * This method will set default values for the frame offset (0.0) and for the scatter distance (6). All opther values do not default and need to be specified.
-     * @return The RosParams instance holding all parameters.
-     */
-    static RosParams read_params();
-    
     /**
      * Retrieve one individual parameter from the ros node environment.
      *

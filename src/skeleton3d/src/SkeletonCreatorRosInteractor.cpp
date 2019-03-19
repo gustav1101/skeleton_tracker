@@ -5,19 +5,6 @@
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using ApproximateTimePolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
 
-
-SkeletonCreatorRosInteractor SkeletonCreatorRosInteractor::get_ros_interactor()
-{
-    return SkeletonCreatorRosInteractor(read_params());
-}
-
-SkeletonCreatorRosInteractor::~SkeletonCreatorRosInteractor()
-{
-    delete message_synchronizer_;
-    delete tfpose_subscriber_;
-    delete pointcloud_subscriber_;
-}
-
 void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
 {
     // On the first call of this method: Set the window size properties on the skeleton creator
@@ -70,25 +57,6 @@ std::string SkeletonCreatorRosInteractor::get_param(const std::string &param_nam
     return param;
 }
 
-void SkeletonCreatorRosInteractor::create_listeners(const std::string &pose_topic_name, const std::string &pointcloud_topic_name)
-{
-    tfpose_subscriber_ = new message_filters::Subscriber<tfpose_ros::Persons>(
-        node_handle_,
-        pose_topic_name,
-        INPUT_QUEUE_SIZE_);
-    pointcloud_subscriber_ = new message_filters::Subscriber<PointCloud>(
-        node_handle_,
-        pointcloud_topic_name,
-        INPUT_QUEUE_SIZE_);
-
-    message_synchronizer_ = new message_filters::Synchronizer<ApproximateTimePolicy>(
-        ApproximateTimePolicy(INPUT_QUEUE_SIZE_),
-        *tfpose_subscriber_,
-        *pointcloud_subscriber_);
-    message_synchronizer_->registerCallback(
-        boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
-}
-
 void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_topic_name)
 {
     skeleton_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
@@ -101,7 +69,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "skeleton_to_3d");
     try
     {
-        SkeletonCreatorRosInteractor interactor = SkeletonCreatorRosInteractor::get_ros_interactor();
+        SkeletonCreatorRosInteractor interactor(SkeletonCreatorRosInteractor::read_params());
         ros::spin();
     } catch (skeleton_exceptions::LackingRosParameter &e)
     {
