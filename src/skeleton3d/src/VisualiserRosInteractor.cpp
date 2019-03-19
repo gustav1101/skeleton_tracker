@@ -1,5 +1,5 @@
-#include "VisualiserRosInteractor.h"
-#include "exceptions.h"
+#include "VisualiserRosInteractor.hpp"
+#include "exceptions.hpp"
 
 using Line = SkeletonVisualiser::Line;
 

@@ -1,5 +1,5 @@
-#ifndef SKELETONVISUALISER_H
-#define SKELETONVISUALISER_H
+#ifndef SKELETONVISUALISER_HPP
+#define SKELETONVISUALISER_HPP
 
 #include <ros/ros.h>
 #include <skeleton3d/Skeletons3d.h>

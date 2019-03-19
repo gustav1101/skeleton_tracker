@@ -1,3 +1,6 @@
+#ifndef SKELETONCREATOR_HPP
+#define SKELETONCREATOR_HPP
+
 #include <geometry_msgs/Point.h>
 #include <tfpose_ros/Person.h>
 #include <tfpose_ros/Persons.h>
@@ -5,7 +8,7 @@
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
 #include <boost/optional.hpp>
-#include "PointFinder.h"
+#include "PointFinder.hpp"
 
 class SkeletonCreator
 {
@@ -27,3 +30,5 @@ private:
     bool any_coordinate_invalid(float x, float y, float z);
     geometry_msgs::Point get_skeleton_center(skeleton3d::Skeleton3d &skeleton);
 };
+
+#endif

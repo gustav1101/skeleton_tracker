@@ -1,5 +1,5 @@
-#include "SkeletonVisualiser.h"
-#include "exceptions.h"
+#include "SkeletonVisualiser.hpp"
+#include "exceptions.hpp"
 
 /* The following vectors are adjacency information for which body part IDs
  * connected to which other body parts. The numbers refer to the corresponding

@@ -1,6 +1,6 @@
-#include "SkeletonCreatorRosInteractor.h"
+#include "SkeletonCreatorRosInteractor.hpp"
 #include <skeleton3d/Skeletons3d.h>
-#include "exceptions.h"
+#include "exceptions.hpp"
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using ApproximateTimePolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;

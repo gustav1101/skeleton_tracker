@@ -1,3 +1,6 @@
+#ifndef MESSAGEHEADINSPECTOR_HPP
+#define MESSAGEHEADINSPECTOR_HPP
+
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <image_transport/image_transport.h>
@@ -23,3 +26,5 @@ public:
     MessageHeadInspector();
     bool already_published_;
 };
+
+#endif

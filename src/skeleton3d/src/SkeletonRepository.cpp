@@ -1,4 +1,4 @@
-#include "SkeletonRepository.h"
+#include "SkeletonRepository.hpp"
 #include <math.h>
 #include <boost/range/combine.hpp>
 #include <boost/algorithm/clamp.hpp>

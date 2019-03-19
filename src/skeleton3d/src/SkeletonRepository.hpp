@@ -1,3 +1,6 @@
+#ifndef SKELETONREPOSITORY_HPP
+#define SKELETONREPOSITORY_HPP
+
 #include <geometry_msgs/Point.h>
 #include <skeleton3d/BodyPart3d.h>
 #include <skeleton3d/Skeleton3d.h>
@@ -46,3 +49,5 @@ private:
     bool decay_skeleton(SkeletonInformation &skeleton_information);
     bool decay_bodypart(BodyPartInformation &body_part_info);
 };
+
+#endif

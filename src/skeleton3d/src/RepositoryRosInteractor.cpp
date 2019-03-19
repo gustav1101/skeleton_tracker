@@ -1,4 +1,4 @@
-#include "RepositoryRosInteractor.h"
+#include "RepositoryRosInteractor.hpp"
 
 RepositoryRosInteractor RepositoryRosInteractor::get_repository_interactor()
 {

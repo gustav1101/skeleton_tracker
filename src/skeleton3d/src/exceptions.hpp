@@ -1,3 +1,6 @@
+#ifndef SKELETON_EXCEPTIONS
+#define SKELETON_EXCEPTIONS
+
 namespace skeleton_exceptions
 {
     class LackingRosParameter : public std::exception {
@@ -11,3 +14,5 @@ namespace skeleton_exceptions
         }
     };
 }
+
+#endif

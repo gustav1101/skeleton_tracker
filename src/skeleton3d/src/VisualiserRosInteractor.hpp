@@ -1,8 +1,8 @@
-#ifndef VISUALISERROSINTERACTOR_H
-#define VISUALISERROSINTERACTOR_H
+#ifndef VISUALISERROSINTERACTOR_HPP
+#define VISUALISERROSINTERACTOR_HPP
 
 #include <ros/ros.h>
-#include "SkeletonVisualiser.h"
+#include "SkeletonVisualiser.hpp"
 #include <skeleton3d/Skeletons3d.h>
 #include <skeleton3d/Skeleton3d.h>
 

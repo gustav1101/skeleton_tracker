@@ -1,7 +1,10 @@
+#ifndef REPOSITORYROSINTERACTOR_HPP
+#define REPOSITORYROSINTERACTOR_HPP
+
 #include <ros/ros.h>
-#include "SkeletonRepository.h"
+#include "SkeletonRepository.hpp"
 #include <skeleton3d/Skeletons3d.h>
-#include "exceptions.h"
+#include "exceptions.hpp"
 class RepositoryRosInteractor
 {
     using Skeleton = skeleton3d::Skeleton3d;
@@ -34,3 +37,5 @@ private:
     void publish_masterlist(const ros::TimerEvent&);
     void update_masterlist(const skeleton3d::Skeletons3d::ConstPtr &msg);
 };
+
+#endif

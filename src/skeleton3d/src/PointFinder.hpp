@@ -1,3 +1,6 @@
+#ifndef POINTFINDER_HPP
+#define POINTFINDER_HPP
+
 #include <geometry_msgs/Point.h>
 #include <ros/ros.h>
 #include <pcl_ros/point_cloud.h>
@@ -40,3 +43,5 @@ private:
     geometry_msgs::Point find_best_point(const std::vector<geometry_msgs::Point> &possible_points, const geometry_msgs::Point &center_point);
     inline bool any_coordinate_invalid(float x, float y, float z);
 };
+
+#endif

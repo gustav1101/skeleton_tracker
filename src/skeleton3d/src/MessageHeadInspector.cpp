@@ -1,4 +1,4 @@
-#include "MessageHeadInspector.h"
+#include "MessageHeadInspector.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 MessageHeadInspector::MessageHeadInspector() : image_transport_(node_handle_)

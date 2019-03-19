@@ -1,4 +1,4 @@
-#include "PointFinder.h"
+#include "PointFinder.hpp"
 #include <boost/algorithm/clamp.hpp>
 #include <stdexcept>
 
