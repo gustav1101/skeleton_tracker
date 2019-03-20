@@ -13,7 +13,7 @@ void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::
         skeleton_creator_.set_image_size(point_cloud->width, point_cloud->height);
         window_boundaries_set_ = true;
     }
-    std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeleton(persons_msg->persons, point_cloud);
+    std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeletons(persons_msg->persons, point_cloud);
     publish_skeletons(skeletons);
 }
 

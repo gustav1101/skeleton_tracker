@@ -11,7 +11,7 @@ SkeletonCreator::~SkeletonCreator()
 
 }
 
-std::vector<skeleton3d::Skeleton3d> SkeletonCreator::generate_skeleton(const std::vector<tfpose_ros::Person> &persons, const PointCloud::ConstPtr &point_cloud)
+std::vector<skeleton3d::Skeleton3d> SkeletonCreator::generate_skeletons(const std::vector<tfpose_ros::Person> &persons, const PointCloud::ConstPtr &point_cloud)
 {
     point_finder_.set_point_cloud(point_cloud);
 
@@ -29,10 +29,16 @@ std::vector<skeleton3d::Skeleton3d> SkeletonCreator::generate_skeleton(const std
     return skeletons_3d;
 }
 
+void SkeletonCreator::set_image_size(unsigned int width, unsigned int height)
+{
+    point_finder_.set_window_boundaries(width, height);
+}
+
 boost::optional<skeleton3d::Skeleton3d> SkeletonCreator::transform_skeleton_to_3d(
     const tfpose_ros::Person &person)
 {
     skeleton3d::Skeleton3d skeleton;
+    // All skeletons have 18 body parts
     skeleton.body_parts = std::vector<skeleton3d::BodyPart3d>(18);
 
     // First set all body parts to invalid (meaning not found), then overwrite with
@@ -42,10 +48,10 @@ boost::optional<skeleton3d::Skeleton3d> SkeletonCreator::transform_skeleton_to_3
         body_part.part_is_valid = false;
     }
 
+    bool any_body_part_valid = false;
     for(const tfpose_ros::BodyPartElm &body_part_2d : person.body_part)
     {
         skeleton3d::BodyPart3d &body_part_3d = skeleton.body_parts.at(body_part_2d.part_id);
-        body_part_3d.part_is_valid = true;
         body_part_3d.part_id = body_part_2d.part_id;
 
         boost::optional<geometry_msgs::Point> body_part_point =
@@ -54,32 +60,17 @@ boost::optional<skeleton3d::Skeleton3d> SkeletonCreator::transform_skeleton_to_3
         {
             continue;
         }
+        body_part_3d.part_is_valid = true;
         body_part_3d.point = *body_part_point;
         body_part_3d.confidence = body_part_2d.confidence;
+        any_body_part_valid = true;
     }
-    return skeleton;
-}
-
-geometry_msgs::Point SkeletonCreator::get_skeleton_center(skeleton3d::Skeleton3d &skeleton)
-{
-    double x,y,z;
-    for (const skeleton3d::BodyPart3d &body_part : skeleton.body_parts)
+    
+    if (any_body_part_valid)
     {
-        x+=body_part.point.x;
-        y+=body_part.point.y;
-        z+=body_part.point.z;
+        return skeleton;
+    } else
+    {
+        return boost::none;
     }
-    x/=skeleton.body_parts.size();
-    y/=skeleton.body_parts.size();
-    z/=skeleton.body_parts.size();
-    geometry_msgs::Point center;
-    center.x = x;
-    center.y = y;
-    center.z = z;
-    return center;
-}
-
-void SkeletonCreator::set_image_size(unsigned int width, unsigned int height)
-{
-    point_finder_.set_window_boundaries(width, height);
 }

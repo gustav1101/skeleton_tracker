@@ -3,40 +3,52 @@
 #include <stdexcept>
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
+using Point3d = geometry_msgs::Point;
 
-boost::optional<geometry_msgs::Point> PointFinder::find_best_point_around_coordinates(
+boost::optional<Point3d> PointFinder::find_best_point_around_coordinates(
     float relative_x, float relative_y)
 {
     if ( image_max_x_ == 0 || image_max_y_ == 0 || !point_cloud_ )
     {
         throw std::runtime_error("Pointcloud not completly initialised!");
     }
-    
-    unsigned int x = relative_x * image_max_x_ + frame_offset_;
-    unsigned int y = relative_y * image_max_y_;
-    Point2d center_point_2d{.x = x, .y = y};
-    
-    std::vector<geometry_msgs::Point> scattered_points = create_scattered_points(center_point_2d);
-    if (scattered_points.size() == 0 )
+   
+    Point2d center_point_2d = absolute_coordinates(relative_x, relative_y);
+
+    // Create group of possible points by scattering around center point.
+    std::vector<Point3d> possible_points = create_possible_points(center_point_2d);
+    if (possible_points.size() == 0 )
     {
-        //ROS_WARN("Could not find points around designated coordinates: x=%i; y=%i", x,y);
+        // Center point is included in possible points, so we can't return that either.
         return boost::none;
     }
-    boost::optional<geometry_msgs::Point> center_point_3d = create_Point3d(center_point_2d);
+    boost::optional<Point3d> center_point_3d = create_point3d(center_point_2d);
     if (!center_point_3d)
     {
-        center_point_3d = scattered_points.at(0);
+        // Pick any point. The first one is the only one to be guaranteed to exist at this point
+        center_point_3d = possible_points.at(0);
     }
-    return find_best_point(scattered_points, *center_point_3d);
+    return find_best_point(possible_points, *center_point_3d);
 }
 
-std::vector<geometry_msgs::Point> PointFinder::create_scattered_points(Point2d &center_point)
+std::vector<Point3d> PointFinder::create_possible_points(Point2d &center_point)
 {
-    std::vector<geometry_msgs::Point> scattered_points;
+    std::vector<Point3d> scattered_points;
+    // Create 9 points, 8 of which are arranged in a square around the center point, and center
+    // point itself being the 9th.
     for (int i = 0; i < 9; i++)
     {
+        /* Scatter according to this pattern:
+         *
+         * i=0 | i=3 | i=6
+         * ----|-----|----
+         * i=1 | i=4 | i=7
+         * ----|-----|----
+         * i=2 | i=5 | i=8
+         */
         unsigned int x = center_point.x + ((int)i/3) * 2 * SCATTER_DISTANCE_ - SCATTER_DISTANCE_;
         unsigned int y = center_point.y + i % 3 * 2 * SCATTER_DISTANCE_ - SCATTER_DISTANCE_;
+        // Make sure we don't go out of image bounds
         x = boost::algorithm::clamp(x, 0, image_max_x_);
         y = boost::algorithm::clamp(y, 0, image_max_y_);
         Point2d point2d{
@@ -44,36 +56,36 @@ std::vector<geometry_msgs::Point> PointFinder::create_scattered_points(Point2d &
             .y = y
         };
 
-        boost::optional<geometry_msgs::Point> point3d = create_Point3d(point2d);
+        boost::optional<Point3d> point3d = create_point3d(point2d);
         if(point3d)
         {
             scattered_points.push_back(*point3d);
         }
     }
-
     return scattered_points;
 }
 
-geometry_msgs::Point PointFinder::find_best_point(const std::vector<geometry_msgs::Point> &possible_points, const geometry_msgs::Point &center_point)
+Point3d PointFinder::find_best_point(const std::vector<Point3d> &possible_points, const Point3d &center_point)
 {
-    geometry_msgs::Point best_depth_point = *std::min_element(possible_points.begin(), possible_points.end(),
-                     [] (geometry_msgs::Point const& point1, geometry_msgs::Point const& point2)
+    // Find the point with minimum z coordinate
+    Point3d best_depth_point = *std::min_element(possible_points.begin(), possible_points.end(),
+                     [] (Point3d const& point1, Point3d const& point2)
                      {
                          return point1.z < point2.z;
                      });
     
-    geometry_msgs::Point best_point;
+    Point3d best_point;
     if( best_depth_point.z + DEPTH_TOLERANCE_ < center_point.z )
     {
-        best_point = geometry_msgs::Point(best_depth_point);
+        best_point = Point3d(best_depth_point);
     } else
     {
-        best_point = geometry_msgs::Point(center_point);
+        best_point = Point3d(center_point);
     }
     return best_point;
 }
 
-boost::optional<geometry_msgs::Point> PointFinder::create_Point3d(Point2d &point2d)
+boost::optional<Point3d> PointFinder::create_point3d(Point2d &point2d)
 {
     if(point2d.x > image_max_x_ || point2d.y > image_max_y_)
     {
@@ -81,7 +93,7 @@ boost::optional<geometry_msgs::Point> PointFinder::create_Point3d(Point2d &point
     }
     pcl::PointXYZ point_in_pointcloud = point_cloud_->at(point2d.x, point2d.y);
     
-    geometry_msgs::Point point3d;
+    Point3d point3d;
     if (any_coordinate_invalid(point_in_pointcloud.x,
                                point_in_pointcloud.y,
                                point_in_pointcloud.z))
@@ -92,6 +104,13 @@ boost::optional<geometry_msgs::Point> PointFinder::create_Point3d(Point2d &point
     point3d.y = point_in_pointcloud.y;
     point3d.z = point_in_pointcloud.z;
     return point3d;
+}
+
+PointFinder::Point2d PointFinder::absolute_coordinates(float &relative_x, float &relative_y)
+{
+    unsigned int x = relative_x * image_max_x_ + frame_offset_;
+    unsigned int y = relative_y * image_max_y_;
+    return {.x = x, .y = y};
 }
 
 inline bool PointFinder::any_coordinate_invalid(float x, float y, float z)
