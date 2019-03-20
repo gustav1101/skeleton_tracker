@@ -35,16 +35,18 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
             };
 }
 
-void RepositoryRosInteractor::setup_topics(const std::string &subscriber_topic, const std::string &publisher_topic, const double &publish_rate)
+void RepositoryRosInteractor::setup_topic_names(const std::string &subscriber_topic_name,
+                                           const std::string &publisher_topic_name,
+                                           const double &publish_interval)
 {
     repository_subscriber_ = node_handle_.subscribe(
-        subscriber_topic,
+        subscriber_topic_name,
         10,
         &RepositoryRosInteractor::update_masterlist,
         this);
-    repository_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(publisher_topic, 5);
-    ROS_INFO("Publishing with rate %f", publish_rate);
-    publish_timer_ = node_handle_.createTimer(ros::Duration(publish_rate), &RepositoryRosInteractor::publish_masterlist, this);
+    repository_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(publisher_topic_name, 5);
+    ROS_INFO("Publishing with interval %f", publish_interval);
+    publish_timer_ = node_handle_.createTimer(ros::Duration(publish_interval), &RepositoryRosInteractor::publish_masterlist, this);
 }
 
 void RepositoryRosInteractor::publish_masterlist(const ros::TimerEvent&)
