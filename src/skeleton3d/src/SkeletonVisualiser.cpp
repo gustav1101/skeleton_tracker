@@ -1,11 +1,6 @@
 #include "SkeletonVisualiser.hpp"
 #include "exceptions.hpp"
 
-/* The following vectors are adjacency information for which body part IDs
- * connected to which other body parts. The numbers refer to the corresponding
- * body part IDs. Eventually, this will be used to draw lines between body
- * parts whose IDs are in one list.
- */
 const std::vector<int> SkeletonVisualiser::ADJACENCY_HEAD_TORSO_ = {0, 1};
 const std::vector<int> SkeletonVisualiser::ADJACENCY_ARMS_ = {4, 3, 2, 1, 5, 6, 7};
 const std::vector<int> SkeletonVisualiser::ADJACENCY_HEAD_ = {16, 14, 0, 15, 17};
@@ -47,12 +42,6 @@ std::vector<Line> SkeletonVisualiser::create_skeleton_lines(const skeleton3d::Sk
     return skeleton_lines;
 }
 
-/*
- * Iterate through one given adjacency list. For each pair of adjacent points find the
- * corresponding body parts. Add their coordinate points to the list of markers.
- * Only add consecutive lists of valid body part coordinate points to make sure the lines
- * are drawn properly later.
- */
 std::vector<Line> SkeletonVisualiser::construct_point_line(const std::vector<skeleton3d::BodyPart3d> &body_parts, const std::vector<int> &adjacency_list)
 {
     std::vector<Line> all_consecutive_lines;
