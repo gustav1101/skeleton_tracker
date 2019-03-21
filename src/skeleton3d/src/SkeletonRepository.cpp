@@ -8,22 +8,19 @@ using BodyPart = skeleton3d::BodyPart3d;
 using Point = geometry_msgs::Point;
 template<class T> using optional = boost::optional<T>;
 
-
-SkeletonRepository::~SkeletonRepository() { }
-
 void SkeletonRepository::update_skeletons(const skeleton3d::Skeletons3d::ConstPtr &skeletons_msg)
 {
     const std::vector<Skeleton> &skeletons = skeletons_msg->skeletons;
     const ros::Time &timestamp = skeletons_msg->header.stamp;
-    for (const Skeleton &skeleton : skeletons)
+    for (const Skeleton &new_skeleton : skeletons)
     {
-        optional<SkeletonInformation&> existing_skeleton = find_skeleton_in_list(skeleton);
+        optional<SkeletonInformation&> existing_skeleton = find_skeleton_in_list(new_skeleton);
         if(existing_skeleton)
         {
-            merge_skeleton(skeleton, *existing_skeleton, timestamp);
+            merge_skeleton(new_skeleton, *existing_skeleton, timestamp);
         } else
         {
-            insert_skeleton(skeleton, timestamp);
+            insert_skeleton(new_skeleton, timestamp);
         }
     }
 }
@@ -37,16 +34,6 @@ std::vector<Skeleton> SkeletonRepository::get_skeleton_masterlist()
         skeletons.push_back(simple_skeleton_from_skeletoninfo(skeleton_info));
     }
     return skeletons;
-}
-
-Skeleton SkeletonRepository::simple_skeleton_from_skeletoninfo(const SkeletonInformation &skeleton_info)
-{
-    Skeleton skeleton;
-    for (const BodyPartInformation &body_part_info : skeleton_info.body_part_information)
-    {
-        skeleton.body_parts.push_back(body_part_info.body_part);
-    }
-    return skeleton;
 }
 
 optional<SkeletonRepository::SkeletonInformation&> SkeletonRepository::find_skeleton_in_list(const Skeleton &new_skeleton)
@@ -85,7 +72,9 @@ inline double SkeletonRepository::distance_between_points(const Point &point1, c
 {
 	// Taxicap metric is sufficient here since we'll be comparing the result
 	// with an arbitrary number anyway.
-    return fabs(point1.x-point2.x) + fabs(point1.y-point2.y) + fabs(point1.z - point2.z); //sqrt(pow(point1.x-point2.x, 2) + pow(point1.y-point2.y, 2) + pow(point1.z - point2.z, 2));
+    return fabs(point1.x-point2.x) + fabs(point1.y-point2.y) + fabs(point1.z - point2.z);
+    // Should you ever want the euclidian metric:
+    //sqrt(pow(point1.x-point2.x, 2) + pow(point1.y-point2.y, 2) + pow(point1.z - point2.z, 2));
 }
 
 Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPart> &body_parts)
@@ -94,7 +83,7 @@ Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPar
     interesting_parts.push_back(&body_parts.at(0));
     interesting_parts.push_back(&body_parts.at(1));
 
-    return calculate_center_point(interesting_parts);
+    return calculate_mean_position(interesting_parts);
 }
 
 Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPartInformation> &body_parts_info)
@@ -103,10 +92,10 @@ Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPar
     interesting_parts.push_back(&body_parts_info.at(0).body_part);
     interesting_parts.push_back(&body_parts_info.at(1).body_part);
     
-    return calculate_center_point(interesting_parts);
+    return calculate_mean_position(interesting_parts);
 }
 
-Point SkeletonRepository::calculate_center_point(const std::vector<const BodyPart*> body_parts)
+Point SkeletonRepository::calculate_mean_position(const std::vector<const BodyPart*> body_parts)
 {
     Point centerpoint;
     centerpoint.x = 0;
@@ -139,9 +128,12 @@ void SkeletonRepository::merge_skeleton(const Skeleton &new_skeleton, SkeletonIn
     }
     for (const BodyPart &new_skeleton_body_part : new_skeleton.body_parts)
     {
-        BodyPartInformation new_body_part_info {.body_part = new_skeleton_body_part, .timestamp = timestamp};
+        BodyPartInformation new_body_part_info {.body_part = new_skeleton_body_part,
+                .timestamp = timestamp};
         const unsigned int body_part_id = new_skeleton_body_part.part_id;
-        BodyPartInformation &old_body_part_info = existing_skeleton.body_part_information.at(body_part_id);
+        BodyPartInformation &old_body_part_info = existing_skeleton
+            .body_part_information
+            .at(body_part_id);
         if (should_update(new_body_part_info, old_body_part_info))
         {
             old_body_part_info = new_body_part_info;
@@ -170,24 +162,44 @@ void SkeletonRepository::insert_skeleton(const Skeleton &new_skeleton, const ros
     skeletons_masterlist_.push_back(skeleton_info);
 }
 
+Skeleton SkeletonRepository::simple_skeleton_from_skeletoninfo(const SkeletonInformation &skeleton_info)
+{
+    Skeleton skeleton;
+    for (const BodyPartInformation &body_part_info : skeleton_info.body_part_information)
+    {
+        skeleton.body_parts.push_back(body_part_info.body_part);
+    }
+    return skeleton;
+}
+
 void SkeletonRepository::decay_masterlist()
 {
     if (DECAY_STRENGTH_ == 0.0)
     {
         return;
     }
-    for (auto masterlist_iter = skeletons_masterlist_.begin(); masterlist_iter != skeletons_masterlist_.end(); masterlist_iter++) //SkeletonInformation &skeleton_info : skeletons_masterlist_)
+    for (auto masterlist_iter = skeletons_masterlist_.begin(); masterlist_iter != skeletons_masterlist_.end(); masterlist_iter++)
     {
         if (decay_skeleton(*masterlist_iter))
         {
             auto to_delete_iter = masterlist_iter;
-            masterlist_iter--;
+            bool all_deleted = false;
+            if (masterlist_iter != skeletons_masterlist_.begin() )
+            {
+                masterlist_iter--;
+            } else
+            {
+                all_deleted = true;
+            }
             skeletons_masterlist_.erase(to_delete_iter);
+            if (all_deleted)
+            {
+                return;
+            }
         }
     }
 }
 
-// Return true iff the Skeleton has only invalid bodyparts and thus should be removed
 bool SkeletonRepository::decay_skeleton(SkeletonInformation &skeleton_information)
 {
     bool remove_skeleton = true;
@@ -198,12 +210,12 @@ bool SkeletonRepository::decay_skeleton(SkeletonInformation &skeleton_informatio
     return remove_skeleton;
 }
 
-// Return True iff part has decayed to the point of being invalid (confidence <= 0 )
 bool SkeletonRepository::decay_bodypart(BodyPartInformation &body_part_info)
 {
     BodyPart &body_part = body_part_info.body_part;
     
-    double time_since_message = boost::algorithm::clamp( (ros::Time::now() - body_part_info.timestamp ).toSec(), 0.0, DBL_MAX );
+    double time_since_message = boost::algorithm::clamp(
+        (ros::Time::now() - body_part_info.timestamp ).toSec(), 0.0, DBL_MAX );
     body_part.confidence -= time_since_message * DECAY_STRENGTH_;
 
     // Check if body part has decayed so much that it should be removed
