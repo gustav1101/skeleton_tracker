@@ -17,7 +17,7 @@
  * Name               | Type   | defaults | Description
  * ------------------ | ------ | -------- | -------
  * position_tolerance | double | 0.3      | Minimum distance between two different Persons before overlap (not euclidian distance!)
- * publish_rate       | double | 0.15     | Time period in s between each publish of masterlist
+ * publish_interval       | double | 0.15     | Time period in s between each publish of masterlist
  * decay_strength     | double | 1.6      | Greater decay strength ages skeleton information faster
  * skeleton_input     | String | required | Topic on which to listen for new skeletons
  * masterlist_ouput   | String | required | Topic on which to publish the skeleton masterlist
@@ -41,7 +41,7 @@ private:
      */
     struct Params {
         double position_tolerance;
-        double publish_rate;
+        double publish_interval;
         double decay_strength;
         std::string subscriber_topic;
         std::string publisher_topic;
@@ -56,7 +56,7 @@ private:
     RepositoryRosInteractor(const Params params) : repository_(params.position_tolerance,
                                                                params.decay_strength)
     {
-        setup_topics(params.subscriber_topic, params.publisher_topic, params.publish_rate);
+        setup_topic_names(params.subscriber_topic, params.publisher_topic, params.publish_interval);
     }
     
     /**
@@ -73,7 +73,7 @@ private:
      * @param publisher_topic_name Topic name on which to publish skeleton masterlist.
      * @param publish_interval Time between each publication of the skeleton masterlist.
      */
-    void setup_topics(const std::string &subscriber_topic_name,
+    void setup_topic_names(const std::string &subscriber_topic_name,
                       const std::string &publisher_topic_name,
                       const double &publish_interval);
 

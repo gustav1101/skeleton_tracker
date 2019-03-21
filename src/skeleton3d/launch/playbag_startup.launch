@@ -17,7 +17,7 @@
     <param name="position_tolerance" type="double" value="0.6" />
     <param name="skeleton_input" type="str" value="/$(arg sensor_namespace)/$(arg skeleton_topic)" />
     <param name="masterlist_output" type="str" value="/skeleton3d/masterlist" />
-    <param name="publish_rate" type="double" value="0.08" />
+    <param name="publish_interval" type="double" value="0.08" />
   </node>
 
   <node name="skeleton_to_3d_vis" pkg="skeleton3d" type="skeleton_visualiser" output="screen">

@@ -10,8 +10,8 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
 {
     double position_tolerance;
     ros::param::param<double>("~position_tolerance", position_tolerance, 0.3);
-    double publish_rate;
-    ros::param::param<double>("~publish_rate", publish_rate, 0.15);
+    double publish_interval;
+    ros::param::param<double>("~publish_interval", publish_interval, 0.15);
     double decay_strength;
     // Decay strength of 1.6 will cause skeleton to disapper after 0.5 seconds with initial
     // confidence of 0.8
@@ -28,7 +28,7 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
     };
     return RepositoryRosInteractor::Params{
         .position_tolerance = position_tolerance,
-            .publish_rate = publish_rate,
+            .publish_interval = publish_interval,
             .decay_strength = decay_strength,
             .subscriber_topic = input,
             .publisher_topic = output
