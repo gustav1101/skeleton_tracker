@@ -209,3 +209,7 @@ include_directories(
 add_executable(skpid src/skpid.cpp)
 target_link_libraries(skpid ${catkin_LIBRARIES})
 add_dependencies(skpid ${catkin_EXPORTED_TARGETS})
+
+add_executable(messagehead_inspector src/MessageHeadInspector.cpp)
+target_link_libraries(messagehead_inspector ${catkin_LIBRARIES})
+add_dependencies(messagehead_inspector skeleton3d_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
