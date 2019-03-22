@@ -221,9 +221,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_executable(skeleton_creator src/SkeletonCreatorRosInteractor.cpp src/SkeletonCreator.cpp src/PointFinder.cpp)
 target_link_libraries(skeleton_creator ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-#target_link_libraries(skeleton_creator )
-add_dependencies(skeleton_creator skeleton3d_generate_messages_cpp)
-add_dependencies(skeleton_creator ${catkin_EXPORTED_TARGETS})
+add_dependencies(skeleton_creator ${catkin_EXPORTED_TARGETS} skeleton3d_generate_messages_cpp)
 
 add_executable(skeleton_visualiser src/VisualiserRosInteractor.cpp src/SkeletonVisualiser.cpp)
 target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
@@ -235,7 +233,7 @@ add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
 
 
 #############
-## Testing ##
+## Doxygen ##
 #############
 # taken from https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # first we can indicate the documentation build as an option and set it to ON by default
