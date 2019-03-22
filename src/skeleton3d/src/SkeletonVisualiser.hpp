@@ -16,6 +16,9 @@
  */
 class SkeletonVisualiser
 {
+    using BodyPart = skeleton3d::BodyPart3d;
+    using Skeleton = skeleton3d::Skeleton3d;
+
 public:
     /**
      * One Line of mulitple geometry_msgs::Point instances.
@@ -24,13 +27,16 @@ public:
         std::vector<geometry_msgs::Point> points;
     };
 
+    using Line = Line;
+
+    
     /**
-     * Generate Line representing a part of the body (such as head, arms, ...).
+     * Generate Lines representing all recognised parts of the body (such as head, arms, ...).
      *
      * @param skeletons All skeletons that the body part lines should be generated for
      * @return Mulitple Lines that each represent a body segment.
      */
-    static std::vector<SkeletonVisualiser::Line> generate_skeletons_lines(const std::vector<skeleton3d::Skeleton3d> &skeletons);
+    static std::vector<Line> generate_skeletons_lines(const std::vector<Skeleton> &skeletons);
     
 private:
     /* The following vectors are adjacency information for which body part IDs
@@ -44,9 +50,9 @@ private:
     static const std::vector<int> ADJACENCY_LEGS_;
 
     /**
-     * Generate all the lines for one skeleton.
+     * Generate all lines for one skeleton.
      */
-    static std::vector<Line> create_skeleton_lines(const skeleton3d::Skeleton3d &skeleton);
+    static std::vector<Line> create_skeleton_lines(const Skeleton &skeleton);
 
     /**
      * Generate one body segment line.
@@ -56,14 +62,21 @@ private:
      * Only add consecutive lists of valid body part coordinate points to make sure the lines
      * are drawn properly later.
      */
-    static std::vector<Line> construct_point_line(const std::vector<skeleton3d::BodyPart3d> &all_body_parts, const std::vector<int> &adjacency_list);
+    static std::vector<Line> construct_bodyparts_line(const std::vector<BodyPart> &all_body_parts, const std::vector<int> &adjacency_list);
 
-    /**
-     * Identify and print the list that caused an error.
-     *
-     * For debugging purposes.
-     */
-    static void print_illegal_list_error(int first_list_item_id);
+    static void add_bodyparts_to_line(const BodyPart &cur_part, const BodyPart &next_part,
+                                      std::vector<Line> &all_consecutive_lines,
+                                      Line &consecutive_line);
+
+    static void add_part_to_line(const BodyPart &cur_part, const BodyPart &next_part,
+                                 Line &consecutive_line);
+
+    static void finish_line(std::vector<Line> &all_consecutive_lines, Line &consecutive_line);
+
+    static bool line_has_started(const Line &consecutive_line);
+
+    static bool line_is_valid(const Line &consecutive_line);
+
 };
 
 #endif
