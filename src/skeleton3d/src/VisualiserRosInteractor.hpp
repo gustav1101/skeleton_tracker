@@ -12,7 +12,7 @@
  * Handles all publishing and subscribing. Node parameters as follows:
  * Name           | Type   | Default  | Description
  * -------------- | ------ | -------- | ----
- * camera_name    | String | Required | Camera name, required for TF frame name
+ * frame_id       | String | Required | Name of TF frame that markers should be relative to
  * decaying_lines | Bool   | true     | Lines live for 0.5 seconds if true and do not decay at all if false
  * input_skeleton | String | Required | Name of skeleton topic
  * output_marker  | String | Required | Name of marker topic
@@ -36,7 +36,7 @@ private:
     ros::Subscriber skeleton_subscriber_;
     ros::Publisher marker_publisher_;
     /** Required for tf frame name set in the published marker messages */
-    std::string camera_name_;
+    std::string frame_id_;
     /** Used to keep track of line id for the published markers. These do not have, and can not
      * have, inherent meaning, since the number of consecutive lines can vary drastically
      * even if the number of skeletons stays constant. (When skeletons are only partially

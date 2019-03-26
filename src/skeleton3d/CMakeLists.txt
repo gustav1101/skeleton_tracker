@@ -231,6 +231,8 @@ add_executable(skeleton_repository src/RepositoryRosInteractor.cpp src/SkeletonR
 target_link_libraries(skeleton_repository ${catkin_LIBRARIES})
 add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
 
+add_executable(tf_broadcaster src/TFBroadcaster.cpp)
+target_link_libraries(tf_broadcaster ${catkin_LIBRARIES})
 
 #############
 ## Doxygen ##

@@ -6,7 +6,7 @@ using Line = SkeletonVisualiser::Line;
 VisualiserRosInteractor::VisualiserRosInteractor()
 {
     setup_topics();
-    camera_name_ = get_param("~camera_name");
+    frame_id_ = get_param("~frame_id");
     ros::param::param<bool>("~decaying_lines", use_decaying_lines_, true);
 }
 
@@ -43,7 +43,7 @@ void VisualiserRosInteractor::publish_line_markers(visualization_msgs::Marker &l
 void VisualiserRosInteractor::set_marker_properties(visualization_msgs::Marker &line_marker)
 {
     line_marker.id = skeleton_consecutive_line_id_;
-    line_marker.header.frame_id = "/" + camera_name_ + "_depth_optical_frame";
+    line_marker.header.frame_id = frame_id_;
     line_marker.header.stamp = ros::Time::now();
     line_marker.ns = "skeleton_to_3d_vis";
     line_marker.action = visualization_msgs::Marker::ADD;

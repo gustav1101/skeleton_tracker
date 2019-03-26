@@ -13,7 +13,15 @@ void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::
         skeleton_creator_.set_image_size(point_cloud->width, point_cloud->height);
         window_boundaries_set_ = true;
     }
+
+    if (persons_msg->persons.size() == 0)
+    {
+        ROS_WARN("Found Message with 0 Persons. Maybe resolution is set too low?");
+        return;
+    }
+
     std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeletons(persons_msg->persons, point_cloud);
+
     publish_skeletons(skeletons);
 }
 
