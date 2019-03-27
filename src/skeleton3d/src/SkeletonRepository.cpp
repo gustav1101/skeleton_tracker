@@ -3,6 +3,7 @@
 #include <boost/range/combine.hpp>
 #include <boost/algorithm/clamp.hpp>
 #include <tf/transform_listener.h>
+#include "exceptions.hpp"
 
 using Skeleton = skeleton3d::Skeleton3d;
 using BodyPart = skeleton3d::BodyPart3d;
@@ -15,7 +16,14 @@ void SkeletonRepository::update_skeletons(const std::vector<TimedSkeleton> &time
 {
     for (const TimedSkeleton &new_skeleton : timed_skeletons)
     {
-        optional<TimedSkeleton&> existing_skeleton = find_skeleton_in_list(new_skeleton);
+        optional<TimedSkeleton&> existing_skeleton;
+        try {
+             existing_skeleton = find_skeleton_in_list(new_skeleton);
+        } catch (const skeleton_exceptions::InvalidBodyPartList &e)
+        {
+            ROS_WARN("Found skeleton without valid center parts, skipping");
+            continue;
+        }
         if(existing_skeleton)
         {
             merge_skeleton(new_skeleton, *existing_skeleton);
@@ -101,7 +109,7 @@ Point SkeletonRepository::calculate_mean_position(const std::vector<const TimedB
     }
     if (valid_point_counter == 0)
     {
-        throw std::runtime_error("No valid Body Parts to calculate mean position of");
+        throw skeleton_exceptions::InvalidBodyPartList();
     }
     centerpoint.x /= valid_point_counter;
     centerpoint.y /= valid_point_counter;

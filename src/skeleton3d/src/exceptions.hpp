@@ -19,6 +19,9 @@ namespace skeleton_exceptions
             return parameter_name_;
         }
     };
+
+    class InvalidBodyPartList : public std::exception {
+    };
 }
 
 #endif

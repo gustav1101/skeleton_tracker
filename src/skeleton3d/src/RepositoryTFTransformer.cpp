@@ -8,9 +8,6 @@ using TimedBodyPart = repository_data_structures::TimedBodyPart;
 
 std::vector<TimedSkeleton> RepositoryTFTransformer::transform_to_global_frame(const Skeletons::ConstPtr &skeletons_msg)
 {
-    ROS_INFO("Trying to transform from %s to %s",
-             skeletons_msg->header.frame_id.c_str(),
-             global_frame_.c_str());
     std::vector<TimedSkeleton> transformed_skeletons;
     for (const Skeleton &simple_skeleton : skeletons_msg->skeletons)
     {
