@@ -19,7 +19,7 @@
  * input_pose       | String | required | Name of tf pose topic (for subscribing)
  * input_pointcloud | String | required | Name of pointcloud topic (for subscribing)
  * output_skeleton  | String | required | Name of skeleton topic (for publishing)
- * camera_name      | String | required | Name of the camera, used to generate tf frame name
+ * frame_id         | String | required | Name of camera base frame id
  * x_frame_offset   | double | 0.0      | X offset for depth image against tf pose coorinates
  * scatter_distance | int    | 6        | Scatter Distance for PointFinder
  */
@@ -36,7 +36,7 @@ public:
         const std::string pose_topic_name;
         const std::string pointcloud_topic_name;
         const std::string skeleton_topic_name;
-        const std::string camera_name;
+        const std::string frame_id;
         const int scatter_distance;
         const double x_frame_offset;
     };
@@ -60,7 +60,7 @@ public:
             ApproximateTimePolicy(INPUT_QUEUE_SIZE_),
             tfpose_subscriber_,
             pointcloud_subscriber_),
-        camera_name_(params.camera_name)
+        frame_id_(params.frame_id)
     {
         message_synchronizer_.registerCallback(
             boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
@@ -96,8 +96,8 @@ private:
     message_filters::Synchronizer<ApproximateTimePolicy> message_synchronizer_;
     /** Output topic for skeletons */
     ros::Publisher skeleton_publisher_;
-    /** Camera name, needed for frame id name in each message header */
-    std::string camera_name_;
+    
+    std::string frame_id_;
     /** Boundaries need to be set before camera input can be evaluated. This happens in generate_skeletons(). */
     bool window_boundaries_set_ = false;
 

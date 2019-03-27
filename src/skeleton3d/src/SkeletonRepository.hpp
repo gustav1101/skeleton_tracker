@@ -7,6 +7,8 @@
 #include <skeleton3d/Skeletons3d.h>
 #include <boost/optional.hpp>
 #include <ros/ros.h> // For time
+#include "RepositoryTFTransformer.hpp"
+#include "RepositoryDataStructures.hpp"
 
 /**
  * Repository of Skeleton Information collected from all sensors.
@@ -34,6 +36,9 @@ class SkeletonRepository {
     using Skeleton = skeleton3d::Skeleton3d;
     using Point = geometry_msgs::Point;
     template<class T> using optional = boost::optional<T>;
+    using TimedBodyPart = repository_data_structures::TimedBodyPart;
+    using TimedSkeleton = repository_data_structures::TimedSkeleton;
+    
 public:
     /**
      * Constructor.
@@ -57,7 +62,7 @@ public:
      *
      * @param skeletons_msg Message with new skeleton information.
      */
-    void update_skeletons(const skeleton3d::Skeletons3d::ConstPtr &skeletons_msg);
+    void update_skeletons(const std::vector<TimedSkeleton> &timed_skeletons);
 
     /**
      * Retrieve all current information from this repository.
@@ -71,31 +76,14 @@ public:
 
 
 private:
-    /**
-     * Internal data structure to record age of individual body part information.
-     */
-    struct BodyPartInformation
-    {
-        BodyPart body_part;
-        ros::Time timestamp;
-    };
-    
-    /**
-     * Internal data structure to enable storing BodypartInformation instead of BodyPart.
-     */
-    struct SkeletonInformation
-    {
-        std::vector<BodyPartInformation> body_part_information;
-    };
-
     /** Tolerance until two skeletons are considered identical. */
     const double POSITION_TOLERANCE_;
     /** Strength multiplier with which information decay happens */
     const double DECAY_STRENGTH_;
-    /** Masterlist holding all current information */
-    std::vector<SkeletonInformation> skeletons_masterlist_;
-
-    /**
+    /** Masterlist holding all current skeletons */
+    std::vector<TimedSkeleton> skeletons_masterlist_;
+       
+    /*
      * Try to find given skeleton in the masterlist.
      *
      * Searches the repository for a skeleton that is close enough to new_skeleton to be
@@ -103,7 +91,21 @@ private:
      *
      * @param new_skeleton A reference to the existing skeleton if one exists, boost::none else.
      */
-    optional<SkeletonInformation&> find_skeleton_in_list(const Skeleton &new_skeleton);
+    optional<TimedSkeleton&> find_skeleton_in_list(const TimedSkeleton &new_skeleton);
+
+    /**
+     * Decide whether or not a skeleton is identical to another.
+     *
+     * This is decided based on their distance to each other. Distance is measured in meters,
+     * but calculated using the taxicap metric instead of euclidian distance. This improves
+     * speed and since the value this is compared to is best selected by try and error anyway,
+     * the euclidian distance would not help here.
+     *
+     * @param skel1 One skeleton
+     * @param skel2 Another skeleton
+     * @return true iff both skeletons are considered identical
+     */
+    bool is_same_skeleton(const TimedSkeleton &skel1, const TimedSkeleton &skel2);
 
     /**
      * Calculate center of skeleton.
@@ -115,20 +117,7 @@ private:
      * @param body_parts List of all parts that may be used in calculating center position.
      * @return Center position of corresponding skeleton.
      */
-    Point get_skeleton_center_position(const std::vector<BodyPart> &body_parts);
-
-    /**
-     * Calculate center of skeleton.
-     *
-     * Current calculation only uses Center head point and center torso point (part ids 0 and 1)
-     * to avoid the center point rapidly changing when a person starts leaving the camera angle.
-     * At least one of those two positions is recognised by the model anyway.
-     *
-     * @param body_parts List of all parts (information) that may be used in calculating center
-     *                   position.
-     * @return Center position of corresponding skeleton.
-     */
-    Point get_skeleton_center_position(const std::vector<BodyPartInformation> &body_parts);
+    Point get_skeleton_center_position(const std::vector<TimedBodyPart> &body_parts);
 
     /**
      * Get mean position of given body parts.
@@ -136,21 +125,13 @@ private:
      * @param body_parts All body parts to calculate average position of.
      * @return The mean position of all body_parts.
      */
-    Point calculate_mean_position(const std::vector<const BodyPart*> body_parts);
+    Point calculate_mean_position(const std::vector<const TimedBodyPart*> body_parts);
 
     /**
-     * Decide whether or not a skeleton is identical to another.
-     *
-     * This is decided based on their distance to each other. Distance is measured in meters, but
-     * calculated using the taxicap metric instead of euclidian distance. This improves
-     * speed and since the value this is compared to is best selected by try and error anyway,
-     * the euclidian distance would not help here.
-     *
-     * @param skel1 One skeleton
-     * @param skel2 Another skeleton
-     * @return true iff both skeletons are considered identical
+     * Calculate taxicap distance between the two given points. See
+     * https://en.wikipedia.org/wiki/Taxicab_geometry for details.
      */
-    bool is_same_skeleton(const Skeleton &skel1, const SkeletonInformation &skel2);
+    double distance_between_points(const Point &point1, const Point &point2);
 
     /**
      * Merge the new skeleton into the one already in the masterlist.
@@ -167,23 +148,8 @@ private:
      * @param timestamp Timestamp of the message the new_skeleton has been received in.
      *
      */
-    void merge_skeleton(const Skeleton &new_skeleton,
-                        SkeletonInformation &exisiting_skeleton,
-                        const ros::Time &timestamp);
-
-    /**
-     * Insert a new skeleton that has not yet been introduced into the masterlist.
-     *
-     * @param new_skeleton The skeleton to insert a copy of into the masterlist.
-     * @param timestamp The timestamp of the message the new_skeleton has been received in.
-     */
-    void insert_skeleton(const Skeleton &new_skeleton, const ros::Time &timestamp);
-
-    /**
-     * Calculate taxicap distance between the two given points. See
-     * https://en.wikipedia.org/wiki/Taxicab_geometry for details.
-     */
-    double distance_between_points(const Point &point1, const Point &point2);
+    void merge_skeleton(const TimedSkeleton &new_skeleton,
+                        TimedSkeleton &exisiting_skeleton);
 
     /**
      * Decide whether or not to update a body part.
@@ -191,13 +157,21 @@ private:
      * Invalid body parts will always be overwritten with valid ones. Invalid parts never
      * overwrite anything. Other than that, only confidence influences the decision.
      */
-    bool should_update(const BodyPartInformation &body_part_new_info,
-                       const BodyPartInformation &body_part_existing_info);
+    bool should_update(const TimedBodyPart &new_timed_body_part,
+                       const TimedBodyPart &existing_timed_body_part);
     
-    /**
-     * Transform a SkeletonInformation into a normal Skeleton by ignoring body part timestamps.
+    /*
+     * Insert a new skeleton that has not yet been introduced into the masterlist.
+     *
+     * @param new_skeleton The skeleton to insert a copy of into the masterlist.
+     * @param timestamp The timestamp of the message the new_skeleton has been received in.
      */
-    Skeleton simple_skeleton_from_skeletoninfo(const SkeletonInformation &skeleton_info);
+    void add_to_masterlist(const TimedSkeleton &new_skeleton);
+
+    /**
+     * Transform a TimedSkeleton into a normal Skeleton by ignoring body part timestamps.
+     */
+    Skeleton simple_skeleton_from(const TimedSkeleton &timed_skeleton);
 
     /*
      * Decay the masterlist by aging the information.
@@ -215,7 +189,7 @@ private:
      * @param skeleton_information Reference to the skeleton in the masterlist to age.
      * @return true iff the skeleton has no valid body parts anymore and needs to be removed.
      */
-    bool decay_skeleton(SkeletonInformation &skeleton_information);
+    bool decay_skeleton(TimedSkeleton &timed_skeleton);
 
     /**
      * Decay one bodypart. See decay_masterlist() for more information. Sets the body part
@@ -224,7 +198,7 @@ private:
      * @param body_part_info Reference to the body part of a skeleton in the masterlist to age.
      * @return true iff the body part has become invalid because confidence reached 0.
      */
-    bool decay_bodypart(BodyPartInformation &body_part_info);
+    bool decay_bodypart(TimedBodyPart &timed_body_part);
 };
 
 #endif

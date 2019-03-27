@@ -1,10 +1,7 @@
 #include "RepositoryRosInteractor.hpp"
+#include "RepositoryDataStructures.hpp"
 
-RepositoryRosInteractor RepositoryRosInteractor::get_repository_interactor()
-{
-    RepositoryRosInteractor::Params params = read_params();
-    return RepositoryRosInteractor(params);
-}
+using TimedSkeleton = repository_data_structures::TimedSkeleton;
 
 RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
 {
@@ -26,27 +23,25 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
     {
         throw skeleton_exceptions::LackingRosParameter("masterlist_output");
     };
+    std::string global_frame_id;
+    ros::param::param<std::string>("~global_frame_id", global_frame_id, "world");
     return RepositoryRosInteractor::Params{
         .position_tolerance = position_tolerance,
             .publish_interval = publish_interval,
             .decay_strength = decay_strength,
             .subscriber_topic = input,
-            .publisher_topic = output
+            .publisher_topic = output,
+            .global_frame_id = global_frame_id,
             };
 }
 
-void RepositoryRosInteractor::setup_topic_names(const std::string &subscriber_topic_name,
-                                           const std::string &publisher_topic_name,
-                                           const double &publish_interval)
+void RepositoryRosInteractor::setup_topic_names(const std::string &publisher_topic_name,
+                                                const double &publish_interval)
 {
-    repository_subscriber_ = node_handle_.subscribe(
-        subscriber_topic_name,
-        10,
-        &RepositoryRosInteractor::update_masterlist,
-        this);
     repository_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(publisher_topic_name, 5);
-    ROS_INFO("Publishing with interval %f", publish_interval);
     publish_timer_ = node_handle_.createTimer(ros::Duration(publish_interval), &RepositoryRosInteractor::publish_masterlist, this);
+    ROS_INFO("Publishing with interval %f", publish_interval);
+    tf_message_filter_.registerCallback( boost::bind(&RepositoryRosInteractor::update_masterlist, this, _1) );
 }
 
 void RepositoryRosInteractor::publish_masterlist(const ros::TimerEvent&)
@@ -65,13 +60,15 @@ void RepositoryRosInteractor::publish_masterlist(const ros::TimerEvent&)
 
 void RepositoryRosInteractor::update_masterlist(const skeleton3d::Skeletons3d::ConstPtr &msg)
 {
-    repository_.update_skeletons(msg);
+    std::vector<TimedSkeleton> transformed_skeletons =
+        skeleton_transformer_.transform_to_global_frame(msg);
+    repository_.update_skeletons(transformed_skeletons);
 }
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "skeleton3d_repository");
-    RepositoryRosInteractor interactor = RepositoryRosInteractor::get_repository_interactor();
-
+    RepositoryRosInteractor interactor(RepositoryRosInteractor::read_params());
+    
     ros::spin();
 }

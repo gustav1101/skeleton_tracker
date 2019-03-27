@@ -227,7 +227,7 @@ add_executable(skeleton_visualiser src/VisualiserRosInteractor.cpp src/SkeletonV
 target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
 add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
 
-add_executable(skeleton_repository src/RepositoryRosInteractor.cpp src/SkeletonRepository.cpp)
+add_executable(skeleton_repository src/RepositoryRosInteractor.cpp src/SkeletonRepository.cpp src/RepositoryTFTransformer.cpp)
 target_link_libraries(skeleton_repository ${catkin_LIBRARIES})
 add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
 

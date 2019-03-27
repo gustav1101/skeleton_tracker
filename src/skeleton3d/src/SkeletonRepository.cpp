@@ -2,25 +2,26 @@
 #include <math.h>
 #include <boost/range/combine.hpp>
 #include <boost/algorithm/clamp.hpp>
+#include <tf/transform_listener.h>
 
 using Skeleton = skeleton3d::Skeleton3d;
 using BodyPart = skeleton3d::BodyPart3d;
 using Point = geometry_msgs::Point;
 template<class T> using optional = boost::optional<T>;
+using TimedBodyPart = repository_data_structures::TimedBodyPart;
+using TimedSkeleton = repository_data_structures::TimedSkeleton;
 
-void SkeletonRepository::update_skeletons(const skeleton3d::Skeletons3d::ConstPtr &skeletons_msg)
+void SkeletonRepository::update_skeletons(const std::vector<TimedSkeleton> &timed_skeletons)
 {
-    const std::vector<Skeleton> &skeletons = skeletons_msg->skeletons;
-    const ros::Time &timestamp = skeletons_msg->header.stamp;
-    for (const Skeleton &new_skeleton : skeletons)
+    for (const TimedSkeleton &new_skeleton : timed_skeletons)
     {
-        optional<SkeletonInformation&> existing_skeleton = find_skeleton_in_list(new_skeleton);
+        optional<TimedSkeleton&> existing_skeleton = find_skeleton_in_list(new_skeleton);
         if(existing_skeleton)
         {
-            merge_skeleton(new_skeleton, *existing_skeleton, timestamp);
+            merge_skeleton(new_skeleton, *existing_skeleton);
         } else
         {
-            insert_skeleton(new_skeleton, timestamp);
+            add_to_masterlist(new_skeleton);
         }
     }
 }
@@ -28,20 +29,21 @@ void SkeletonRepository::update_skeletons(const skeleton3d::Skeletons3d::ConstPt
 std::vector<Skeleton> SkeletonRepository::get_skeleton_masterlist()
 {
     decay_masterlist();
-    std::vector<Skeleton> skeletons;
-    for (const SkeletonInformation &skeleton_info : skeletons_masterlist_)
+
+    std::vector<Skeleton> simple_skeletons;
+    for (const TimedSkeleton &timed_skeleton : skeletons_masterlist_)
     {
-        skeletons.push_back(simple_skeleton_from_skeletoninfo(skeleton_info));
+        simple_skeletons.push_back(simple_skeleton_from(timed_skeleton));
     }
-    return skeletons;
+    return simple_skeletons;
 }
 
-optional<SkeletonRepository::SkeletonInformation&> SkeletonRepository::find_skeleton_in_list(const Skeleton &new_skeleton)
+optional<SkeletonRepository::TimedSkeleton&> SkeletonRepository::find_skeleton_in_list(const TimedSkeleton &new_skeleton)
 {
     auto existing_skeleton_iterator = std::find_if(
         skeletons_masterlist_.begin(),
         skeletons_masterlist_.end(),
-        [&new_skeleton, this](const SkeletonInformation &skeleton_in_list)
+        [&new_skeleton, this](const TimedSkeleton &skeleton_in_list)
         {
             return is_same_skeleton(new_skeleton, skeleton_in_list);
         });
@@ -54,10 +56,10 @@ optional<SkeletonRepository::SkeletonInformation&> SkeletonRepository::find_skel
     }
 }
 
-bool SkeletonRepository::is_same_skeleton(const Skeleton &skel1, const SkeletonInformation &skel2)
+bool SkeletonRepository::is_same_skeleton(const TimedSkeleton &skel1, const TimedSkeleton &skel2)
 {
-    Point skel1_center = get_skeleton_center_position(skel1.body_parts);
-    Point skel2_center = get_skeleton_center_position(skel2.body_part_information);
+    Point skel1_center = get_skeleton_center_position(skel1.timed_body_parts);
+    Point skel2_center = get_skeleton_center_position(skel2.timed_body_parts);
 
     if (distance_between_points(skel1_center, skel2_center) > POSITION_TOLERANCE_)
     {
@@ -68,7 +70,46 @@ bool SkeletonRepository::is_same_skeleton(const Skeleton &skel1, const SkeletonI
     }
 }
 
-inline double SkeletonRepository::distance_between_points(const Point &point1, const Point &point2)
+Point SkeletonRepository::get_skeleton_center_position(const std::vector<TimedBodyPart> &body_parts)
+{
+    // Use only center head and center torso points for calculation. More robust when Skeleton
+    // is leaving the frame.
+    std::vector<const TimedBodyPart*> interesting_parts;
+    interesting_parts.push_back(&body_parts.at(0));
+    interesting_parts.push_back(&body_parts.at(1));
+    
+    return calculate_mean_position(interesting_parts);
+}
+
+Point SkeletonRepository::calculate_mean_position(const std::vector<const TimedBodyPart*> body_parts)
+{
+    Point centerpoint;
+    centerpoint.x = 0;
+    centerpoint.y = 0;
+    centerpoint.z = 0;
+    int valid_point_counter = 0;
+    for(const TimedBodyPart * const timed_body_part : body_parts)
+    {
+        const BodyPart &body_part = timed_body_part->body_part;
+        if ( body_part.part_is_valid )
+        {
+            centerpoint.x += body_part.point.x;
+            centerpoint.y += body_part.point.y;
+            centerpoint.z += body_part.point.z;
+            valid_point_counter++;
+        }
+    }
+    if (valid_point_counter == 0)
+    {
+        throw std::runtime_error("No valid Body Parts to calculate mean position of");
+    }
+    centerpoint.x /= valid_point_counter;
+    centerpoint.y /= valid_point_counter;
+    centerpoint.z /= valid_point_counter;
+    return centerpoint;
+}
+
+double SkeletonRepository::distance_between_points(const Point &point1, const Point &point2)
 {
 	// Taxicap metric is sufficient here since we'll be comparing the result
 	// with an arbitrary number anyway.
@@ -77,97 +118,40 @@ inline double SkeletonRepository::distance_between_points(const Point &point1, c
     //sqrt(pow(point1.x-point2.x, 2) + pow(point1.y-point2.y, 2) + pow(point1.z - point2.z, 2));
 }
 
-Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPart> &body_parts)
+void SkeletonRepository::merge_skeleton(const TimedSkeleton &new_skeleton, TimedSkeleton &existing_skeleton)
 {
-    std::vector<const BodyPart*> interesting_parts;
-    interesting_parts.push_back(&body_parts.at(0));
-    interesting_parts.push_back(&body_parts.at(1));
-
-    return calculate_mean_position(interesting_parts);
-}
-
-Point SkeletonRepository::get_skeleton_center_position(const std::vector<BodyPartInformation> &body_parts_info)
-{
-    std::vector<const BodyPart*> interesting_parts;
-    interesting_parts.push_back(&body_parts_info.at(0).body_part);
-    interesting_parts.push_back(&body_parts_info.at(1).body_part);
-    
-    return calculate_mean_position(interesting_parts);
-}
-
-Point SkeletonRepository::calculate_mean_position(const std::vector<const BodyPart*> body_parts)
-{
-    Point centerpoint;
-    centerpoint.x = 0;
-    centerpoint.y = 0;
-    centerpoint.z = 0;
-    int valid_point_counter = 0;
-    for(const BodyPart * const body_part : body_parts)
+    for (int i = 0; i < 18; i++)
     {
-        if ( body_part->part_is_valid )
+        const TimedBodyPart &new_body_part = new_skeleton.timed_body_parts.at(i);
+        TimedBodyPart &existing_body_part = existing_skeleton.timed_body_parts.at(i);
+        if (should_update(new_body_part, existing_body_part))
         {
-            centerpoint.x += body_part->point.x;
-            centerpoint.y += body_part->point.y;
-            centerpoint.z += body_part->point.z;
-            valid_point_counter++;
-        }
-    }
-    centerpoint.x /= valid_point_counter;
-    centerpoint.y /= valid_point_counter;
-    centerpoint.z /= valid_point_counter;
-    return centerpoint;
-}
-
-void SkeletonRepository::merge_skeleton(const Skeleton &new_skeleton, SkeletonInformation &existing_skeleton, const ros::Time &timestamp)
-{
-    if (new_skeleton.body_parts.size() != existing_skeleton.body_part_information.size())
-    {
-        // Should this ever happen something is seriously wrong with the skeleton creator
-        // implementation, as all body part lists should always have same size
-        throw std::runtime_error("Skeleton Body Part Lists have unequal size.");
-    }
-    for (const BodyPart &new_skeleton_body_part : new_skeleton.body_parts)
-    {
-        BodyPartInformation new_body_part_info {.body_part = new_skeleton_body_part,
-                .timestamp = timestamp};
-        const unsigned int body_part_id = new_skeleton_body_part.part_id;
-        BodyPartInformation &old_body_part_info = existing_skeleton
-            .body_part_information
-            .at(body_part_id);
-        if (should_update(new_body_part_info, old_body_part_info))
-        {
-            old_body_part_info = new_body_part_info;
+            existing_body_part = new_body_part;
         }
     }
 }
 
-inline bool SkeletonRepository::should_update(const BodyPartInformation &body_part_new_info, const BodyPartInformation &body_part_existing_info)
+inline bool SkeletonRepository::should_update(const TimedBodyPart &new_timed_body_part, const TimedBodyPart &existing_timed_body_part)
 {
-    const BodyPart &body_part_new = body_part_new_info.body_part;
-    const BodyPart &body_part_old = body_part_existing_info.body_part;
+    const BodyPart &new_body_part = new_timed_body_part.body_part;
+    const BodyPart &existing_body_part = existing_timed_body_part.body_part;
     // Update the body part only if the new part is valid AND the old part is either invalid
     // or has a lower confidence.
-    return body_part_new.part_is_valid && ( !body_part_old.part_is_valid) ||
-        (body_part_new.confidence > body_part_old.confidence);
+    return (new_body_part.part_is_valid && !existing_body_part.part_is_valid) ||
+        (new_body_part.confidence > existing_body_part.confidence);
 }
 
-void SkeletonRepository::insert_skeleton(const Skeleton &new_skeleton, const ros::Time &timestamp)
+void SkeletonRepository::add_to_masterlist(const TimedSkeleton &new_skeleton)
 {
-    SkeletonInformation skeleton_info;
-    for(const BodyPart &body_part : new_skeleton.body_parts)
-    {
-        BodyPartInformation body_part_info{ .body_part = body_part, .timestamp = timestamp };
-        skeleton_info.body_part_information.push_back(body_part_info);
-    }
-    skeletons_masterlist_.push_back(skeleton_info);
+    skeletons_masterlist_.push_back(new_skeleton);
 }
 
-Skeleton SkeletonRepository::simple_skeleton_from_skeletoninfo(const SkeletonInformation &skeleton_info)
+Skeleton SkeletonRepository::simple_skeleton_from(const TimedSkeleton &timed_skeleton)
 {
     Skeleton skeleton;
-    for (const BodyPartInformation &body_part_info : skeleton_info.body_part_information)
+    for (const TimedBodyPart &timed_body_part : timed_skeleton.timed_body_parts)
     {
-        skeleton.body_parts.push_back(body_part_info.body_part);
+        skeleton.body_parts.push_back(timed_body_part.body_part);
     }
     return skeleton;
 }
@@ -200,28 +184,33 @@ void SkeletonRepository::decay_masterlist()
     }
 }
 
-bool SkeletonRepository::decay_skeleton(SkeletonInformation &skeleton_information)
+bool SkeletonRepository::decay_skeleton(TimedSkeleton &timed_skeleton)
 {
     bool remove_skeleton = true;
-    for (BodyPartInformation &body_part_info : skeleton_information.body_part_information)
+    for (TimedBodyPart &timed_body_part : timed_skeleton.timed_body_parts)
     {
-        remove_skeleton &= decay_bodypart(body_part_info);
+        remove_skeleton &= decay_bodypart(timed_body_part);
     }
     return remove_skeleton;
 }
 
-bool SkeletonRepository::decay_bodypart(BodyPartInformation &body_part_info)
+bool SkeletonRepository::decay_bodypart(TimedBodyPart &timed_body_part)
 {
-    BodyPart &body_part = body_part_info.body_part;
+    BodyPart &body_part = timed_body_part.body_part;
+
+    if (!body_part.part_is_valid)
+    {
+        return true;
+    }
     
     double time_since_message = boost::algorithm::clamp(
-        (ros::Time::now() - body_part_info.timestamp ).toSec(), 0.0, DBL_MAX );
+        (ros::Time::now() - timed_body_part.timestamp ).toSec(), 0.0, DBL_MAX );
     body_part.confidence -= time_since_message * DECAY_STRENGTH_;
 
     // Check if body part has decayed so much that it should be removed
     if(body_part.confidence <= 0.0)
     {
-        body_part_info.body_part.part_is_valid = false;
+        timed_body_part.body_part.part_is_valid = false;
         return true;
     } else
     {

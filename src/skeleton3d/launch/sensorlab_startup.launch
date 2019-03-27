@@ -22,6 +22,7 @@
     <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
     <param name="camera_name" type="str" value="kinect2" />
     <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="frame_id" type="str" value="kinect2_link" />
   </node>
 
   <!-- ++++++++++++++++++++++++++ XTION1 ON ODROID1 ++++++++++++++++++++++++++++++++++++++ -->
@@ -58,6 +59,7 @@
     <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
     <param name="camera_name" type="str" value="xtion2" />
     <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="frame_id" type="str" value="xtion2_depth_frame" />
   </node>
 
   <!-- +++++++++++++++++++ REPOSITORY AND CENTRAL INFRASTRUCTURE +++++++++++++++++++++++++ -->
@@ -70,12 +72,13 @@
     <param name="skeleton_input" type="str" value="skeleton_input" />
     <param name="masterlist_output" type="str" value="masterlist" />
     <param name="publish_interval" type="double" value="0.08" />
+    <param name="global_frame_id" type="str" value="world" />
   </node>
 
   <node name="skeleton_visualiser" pkg="skeleton3d" type="skeleton_visualiser" output="screen" ns="repository" required="true" >
     <param name="input_skeleton" type="str" value="masterlist" />
     <param name = "output_marker" type="str" value="skeleton_vis" />
-    <param name="frame_id" type="str" value="/world" />
+    <param name="frame_id" type="str" value="world" />
   </node>
 
 

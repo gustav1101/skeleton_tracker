@@ -33,6 +33,10 @@ int main(int argc, char **argv)
     tf::Transform xtion2_transform(xtion2_quat,xtion2_transl);
     tf_broadcaster.add_frame(xtion2_transform, "xtion2_link");
 
+    tf::Vector3 global_transl(0,0,0);
+    tf::Quaternion global_quat(1,0,0,0);
+    tf::Transform global_transform(global_quat, global_transl);
+    tf_broadcaster.add_frame(global_transform, "map");
     
     while(ros::ok())
     {

@@ -29,7 +29,7 @@ void SkeletonCreatorRosInteractor::publish_skeletons(std::vector<skeleton3d::Ske
 {
     skeleton3d::Skeletons3d skeletons_msg;
     skeletons_msg.header.stamp = ros::Time::now();
-    skeletons_msg.header.frame_id = "/" + camera_name_ + "_depth_frame";
+    skeletons_msg.header.frame_id = frame_id_;
     skeletons_msg.skeletons = skeletons;
     
     skeleton_publisher_.publish(skeletons_msg);
@@ -40,7 +40,7 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
     std::string pose_topic_name = get_param("~input_pose");
     std::string pointcloud_topic_name = get_param("~input_pointcloud");
     std::string skeleton_topic_name = get_param("~output_skeleton");
-    std::string camera_name = get_param("~camera_name");
+    std::string frame_id = get_param("~frame_id");
     double frame_offset;
     ros::param::param<double>("~x_frame_offset", frame_offset, 0.0);
     int scatter_distance;
@@ -50,7 +50,7 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
         .pose_topic_name = pose_topic_name,
             .pointcloud_topic_name = pointcloud_topic_name,
             .skeleton_topic_name = skeleton_topic_name,
-            .camera_name = camera_name,
+            .frame_id = frame_id,
             .scatter_distance = scatter_distance,
             .x_frame_offset = frame_offset};
 }

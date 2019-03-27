@@ -21,21 +21,13 @@
  * decay_strength     | double | 1.6      | Greater decay strength ages skeleton information faster
  * skeleton_input     | String | required | Topic on which to listen for new skeletons
  * masterlist_ouput   | String | required | Topic on which to publish the skeleton masterlist
+ * global_frame_id    | String | world    | TF Global Frame Name
  */
 class RepositoryRosInteractor
 {
     using Skeleton = skeleton3d::Skeleton3d;
 
 public:
-    ~RepositoryRosInteractor() {};
-    /**
-     * Factory method to get a repository ros interactor.
-     *
-     * Reads ros node parameters to create the repository.
-     */
-    static RepositoryRosInteractor get_repository_interactor();
-
-private:
     /**
      * Holds all parameters set for this node.
      */
@@ -45,20 +37,27 @@ private:
         double decay_strength;
         std::string subscriber_topic;
         std::string publisher_topic;
+        std::string global_frame_id;
     };
 
-    ros::NodeHandle node_handle_;
-    ros::Publisher repository_publisher_;
-    ros::Subscriber repository_subscriber_;
-    SkeletonRepository repository_;
-    ros::Timer publish_timer_;
-
     RepositoryRosInteractor(const Params params) : repository_(params.position_tolerance,
-                                                               params.decay_strength)
+                                                               params.decay_strength),
+                                                   skeleton_subscriber_(node_handle_,
+                                                                        params.subscriber_topic,
+                                                                        MESSAGE_QUEUE_SIZE_),
+                                                   tf_message_filter_(skeleton_subscriber_,
+                                                                      tf_listener_,
+                                                                      params.global_frame_id,
+                                                                      MESSAGE_QUEUE_SIZE_),
+                                                   global_frame_(params.global_frame_id),
+                                                   skeleton_transformer_(tf_listener_,
+                                                                         params.global_frame_id)
     {
-        setup_topic_names(params.subscriber_topic, params.publisher_topic, params.publish_interval);
+        setup_topic_names(params.publisher_topic, params.publish_interval);
     }
-    
+
+    ~RepositoryRosInteractor() {};
+
     /**
      * Read all parameters set for this node.
      *
@@ -66,6 +65,18 @@ private:
      */
     static Params read_params();
 
+private:
+    
+    const int MESSAGE_QUEUE_SIZE_ = 10;
+    ros::NodeHandle node_handle_;
+    ros::Publisher repository_publisher_;
+    SkeletonRepository repository_;
+    ros::Timer publish_timer_;
+    message_filters::Subscriber<skeleton3d::Skeletons3d> skeleton_subscriber_;
+    tf::TransformListener tf_listener_;
+    tf::MessageFilter<skeleton3d::Skeletons3d> tf_message_filter_;
+    RepositoryTFTransformer skeleton_transformer_;
+    const std::string global_frame_;
     /**
      * Setup subscriber and publisher. Also sets timer to make sure skeletons are published.
      *
@@ -73,9 +84,8 @@ private:
      * @param publisher_topic_name Topic name on which to publish skeleton masterlist.
      * @param publish_interval Time between each publication of the skeleton masterlist.
      */
-    void setup_topic_names(const std::string &subscriber_topic_name,
-                      const std::string &publisher_topic_name,
-                      const double &publish_interval);
+    void setup_topic_names(const std::string &publisher_topic_name,
+                           const double &publish_interval);
 
     /**
      * Retrieve skeleton masterlist from repository and publish.
