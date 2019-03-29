@@ -51,7 +51,8 @@ public:
      */
     SkeletonRepository(double position_tolerance, double decay_strength) :
         POSITION_TOLERANCE_(position_tolerance),
-        DECAY_STRENGTH_(decay_strength) {}
+        DECAY_STRENGTH_(decay_strength),
+        skeleton_id_(0) {}
     ~SkeletonRepository() {};
     
     /**
@@ -82,6 +83,8 @@ private:
     const double DECAY_STRENGTH_;
     /** Masterlist holding all current skeletons */
     std::vector<TimedSkeleton> skeletons_masterlist_;
+    std::vector<TimedSkeleton*> exclude_list_;
+    unsigned int skeleton_id_;
        
     /*
      * Try to find given skeleton in the masterlist.
@@ -107,6 +110,7 @@ private:
      */
     bool is_same_skeleton(const TimedSkeleton &skel1, const TimedSkeleton &skel2);
 
+    bool from_same_message(const TimedSkeleton &skeleton);
     /**
      * Calculate center of skeleton.
      *

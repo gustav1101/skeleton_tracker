@@ -14,12 +14,13 @@ using TimedSkeleton = repository_data_structures::TimedSkeleton;
 
 void SkeletonRepository::update_skeletons(const std::vector<TimedSkeleton> &timed_skeletons)
 {
+    exclude_list_.clear();
     for (const TimedSkeleton &new_skeleton : timed_skeletons)
     {
         optional<TimedSkeleton&> existing_skeleton;
         try {
              existing_skeleton = find_skeleton_in_list(new_skeleton);
-        } catch (const skeleton_exceptions::InvalidBodyPartList &e)
+        } catch (const skeleton_exceptions::InvalidBodyPartList&)
         {
             ROS_WARN("Found skeleton without valid center parts, skipping");
             continue;
@@ -53,7 +54,7 @@ optional<SkeletonRepository::TimedSkeleton&> SkeletonRepository::find_skeleton_i
         skeletons_masterlist_.end(),
         [&new_skeleton, this](const TimedSkeleton &skeleton_in_list)
         {
-            return is_same_skeleton(new_skeleton, skeleton_in_list);
+            return !from_same_message(skeleton_in_list) && is_same_skeleton(new_skeleton, skeleton_in_list);
         });
     if (existing_skeleton_iterator != skeletons_masterlist_.end())
     {
@@ -73,9 +74,16 @@ bool SkeletonRepository::is_same_skeleton(const TimedSkeleton &skel1, const Time
     {
         return false;
     }
-    else {
+    else
+    {
         return true;
     }
+}
+
+bool SkeletonRepository::from_same_message(const TimedSkeleton &skeleton)
+{
+    auto it = find(exclude_list_.begin(), exclude_list_.end(), &skeleton);
+    return it != exclude_list_.end();
 }
 
 Point SkeletonRepository::get_skeleton_center_position(const std::vector<TimedBodyPart> &body_parts)
@@ -137,6 +145,7 @@ void SkeletonRepository::merge_skeleton(const TimedSkeleton &new_skeleton, Timed
             existing_body_part = new_body_part;
         }
     }
+    exclude_list_.push_back(&existing_skeleton);
 }
 
 inline bool SkeletonRepository::should_update(const TimedBodyPart &new_timed_body_part, const TimedBodyPart &existing_timed_body_part)
@@ -152,6 +161,8 @@ inline bool SkeletonRepository::should_update(const TimedBodyPart &new_timed_bod
 void SkeletonRepository::add_to_masterlist(const TimedSkeleton &new_skeleton)
 {
     skeletons_masterlist_.push_back(new_skeleton);
+    skeletons_masterlist_.back().id = skeleton_id_++;
+    exclude_list_.push_back(&skeletons_masterlist_.back());
 }
 
 Skeleton SkeletonRepository::simple_skeleton_from(const TimedSkeleton &timed_skeleton)

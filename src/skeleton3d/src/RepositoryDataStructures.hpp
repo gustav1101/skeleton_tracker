@@ -14,6 +14,7 @@ namespace repository_data_structures {
     struct TimedSkeleton
     {
         std::vector<TimedBodyPart> timed_body_parts;
+        unsigned int id;
     };
 }
 

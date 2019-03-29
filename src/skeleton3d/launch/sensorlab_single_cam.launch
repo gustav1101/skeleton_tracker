@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="scatter_distance" value="3" />
+  <arg name="resolution" value="368x368" />
+
+  <!-- ++++++++++++++++++++++++++ LAUNCH CAMERAS +++++++++++++++++++++++++++++++++++++++++ -->
+    
+  <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" />
+
+  <!-- ++++++++++++++++++++++++++ KINECT2 ON LOCAL DEVICE ++++++++++++++++++++++++++++++++ -->
+  
+  <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" ns="kinect2" required="true" >
+    <env name="CUDA_VISIBLE_DEVICES" value="0" />
+    <param name="camera" value="sd/image_color_rect" />
+    <param name="model" value="mobilenet_thin" />
+    <param name="resolution" value="$(arg resolution)" />
+  </node>
+
+  <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" ns="kinect2" required="true">
+    <param name="input_pose" type="str" value="pose_estimator/pose" />
+    <param name="input_pointcloud" type="str" value="sd/points" />
+    <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
+    <param name="camera_name" type="str" value="kinect2" />
+    <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="frame_id" type="str" value="kinect2_link" />
+  </node>
+
+  <!-- ++++++++++++++++++++++++++ XTION1 ON ODROID1 ++++++++++++++++++++++++++++++++++++++ -->
+<!--  
+  <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true" ns="xtion1" >
+    <env name="CUDA_VISIBLE_DEVICES" value="2" />
+    <param name="camera" value="rgb/image_rect_color" />
+    <param name="model" value="mobilenet_thin" />
+    <param name="resolution" value="$(arg resolution)" />
+  </node>
+
+  <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" ns="xtion1" required="true">
+    <param name="input_pose" type="str" value="pose_estimator/pose" />
+    <param name="input_pointcloud" type="str" value="depth_registered/points" />
+    <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
+    <param name="camera_name" type="str" value="xtion1" />
+    <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="frame_id" type="str" value="xtion1_depth_frame" />
+  </node>
+-->
+    <!-- ++++++++++++++++++++++++++ XTION2 ON ODROID2 ++++++++++++++++++++++++++++++++++++++ -->
+<!--
+  <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" ns="xtion2" required="true" >
+    <env name="CUDA_VISIBLE_DEVICES" value="1" />
+    <param name="camera" value="rgb/image_rect_color" />
+    <param name="model" value="mobilenet_thin" />
+    <param name="resolution" value="$(arg resolution)" />
+  </node>
+
+  <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" ns="xtion2" required="true">
+    <param name="input_pose" type="str" value="pose_estimator/pose" />
+    <param name="input_pointcloud" type="str" value="depth_registered/points" />
+    <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
+    <param name="camera_name" type="str" value="xtion2" />
+    <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="frame_id" type="str" value="xtion2_depth_frame" />
+  </node>
+-->
+
+  <!-- +++++++++++++++++++ REPOSITORY AND CENTRAL INFRASTRUCTURE +++++++++++++++++++++++++ -->
+  
+  <node name="tf_static_broadcaster" pkg="skeleton3d" type="tf_broadcaster" output="screen" />
+
+  
+  <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen" ns="repository" required="true" >
+    <param name="position_tolerance" type="double" value="1.2" />
+    <param name="skeleton_input" type="str" value="skeleton_input" />
+    <param name="masterlist_output" type="str" value="masterlist" />
+    <param name="publish_interval" type="double" value="0.08" />
+    <param name="global_frame_id" type="str" value="world" />
+  </node>
+
+  <node name="skeleton_visualiser" pkg="skeleton3d" type="skeleton_visualiser" output="screen" ns="repository" required="true" >
+    <param name="input_skeleton" type="str" value="masterlist" />
+    <param name = "output_marker" type="str" value="skeleton_vis" />
+    <param name="frame_id" type="str" value="world" />
+  </node>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find skeleton3d)/rviz/live_multicam.rviz" />
+</launch>

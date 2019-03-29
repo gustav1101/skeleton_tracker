@@ -77,6 +77,7 @@ private:
     tf::MessageFilter<skeleton3d::Skeletons3d> tf_message_filter_;
     RepositoryTFTransformer skeleton_transformer_;
     const std::string global_frame_;
+    
     /**
      * Setup subscriber and publisher. Also sets timer to make sure skeletons are published.
      *

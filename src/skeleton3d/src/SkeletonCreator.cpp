@@ -16,12 +16,14 @@ std::vector<skeleton3d::Skeleton3d> SkeletonCreator::generate_skeletons(const st
     point_finder_.set_point_cloud(point_cloud);
     // For each skeleton created by openpose: transform into 3d skeleton
     std::vector<skeleton3d::Skeleton3d> skeletons_3d;
+    unsigned int skeleton_id = 0;
     for(const tfpose_ros::Person &person : persons)
     {
         boost::optional<skeleton3d::Skeleton3d> skeleton = transform_skeleton_to_3d(
             person);
         if (skeleton)
         {
+            skeleton->id = skeleton_id++;
             skeletons_3d.push_back(*skeleton);
         }
     }
