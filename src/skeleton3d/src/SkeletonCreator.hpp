@@ -26,7 +26,8 @@ public:
      * @param [in] scatter_distance Distance in pixels around which additional points will be found
      * @param [in] frame_offset X correction in pixels between the rgb image and point cloud coordinate system, positive means right
      */
-    SkeletonCreator(int scatter_distance, double frame_offset) : point_finder_(scatter_distance, frame_offset) {}
+    SkeletonCreator(int scatter_step_distance, int scatter_steps, double frame_offset) :
+        point_finder_(scatter_step_distance, scatter_steps, frame_offset) {}
     
     ~SkeletonCreator();
 

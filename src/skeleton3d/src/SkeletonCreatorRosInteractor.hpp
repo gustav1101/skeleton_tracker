@@ -14,14 +14,15 @@
  * This module handles all ros interaction (publishing, subscribing, ...) for the Skeleton Creator. It listens for the tf pose and the pointcloud and calls the SkeletonCreator to generate the skeleton. Both messages (pointcloud and pose) need to have similar timestamps, otherwise the callback will not be called.
  * SkeletonCreator then uses this module to publish the resulting skeletons on a corresponding ros topic.
  * This module also handles reading and passing on of node parameters, some of which are required. The parameters are as follows:
- * Name             | Type   | defaults | Description
- * ---------------- | ------ | -------- | ----------------------------------------------------
- * input_pose       | String | required | Name of tf pose topic (for subscribing)
- * input_pointcloud | String | required | Name of pointcloud topic (for subscribing)
- * output_skeleton  | String | required | Name of skeleton topic (for publishing)
- * frame_id         | String | required | Name of camera base frame id
- * x_frame_offset   | double | 0.0      | X offset for depth image against tf pose coorinates
- * scatter_distance | int    | 6        | Scatter Distance for PointFinder
+ * Name                  | Type   | defaults | Description
+ * --------------------- | ------ | -------- | --------------------------------------------------
+ * input_pose            | String | required | Name of tf pose topic (for subscribing)
+ * input_pointcloud      | String | required | Name of pointcloud topic (for subscribing)
+ * output_skeleton       | String | required | Name of skeleton topic (for publishing)
+ * frame_id              | String | required | Name of camera base frame id
+ * x_frame_offset        | double | 0.0      | X offset for depth image against pose coorinates
+ * scatter_step_distance | int    | 2        | Scatter Distance for PointFinder
+ * scatter_steps         | int    | 4        | Number of scatter steps in each direction (as radius, not diameter)
  */
 class SkeletonCreatorRosInteractor
 {
@@ -37,7 +38,8 @@ public:
         const std::string pointcloud_topic_name;
         const std::string skeleton_topic_name;
         const std::string frame_id;
-        const int scatter_distance;
+        const int scatter_step_distance;
+        const int scatter_steps;
         const double x_frame_offset;
     };
 
@@ -47,7 +49,10 @@ public:
      * @param [in] params RosParams with all fields specified.
      */
     SkeletonCreatorRosInteractor(const RosParams params) :
-        skeleton_creator_(params.scatter_distance, params.x_frame_offset),
+        skeleton_creator_(
+            params.scatter_step_distance,
+            params.scatter_steps,
+            params.x_frame_offset),
         tfpose_subscriber_(
             node_handle_,
             params.pose_topic_name,
@@ -65,6 +70,9 @@ public:
         message_synchronizer_.registerCallback(
             boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
         create_publisher(params.skeleton_topic_name);
+        ROS_INFO("Scatter steps: %i, Scatter distance: %i",
+                 params.scatter_steps,
+                 params.scatter_step_distance);
     }
     
     ~SkeletonCreatorRosInteractor() {}

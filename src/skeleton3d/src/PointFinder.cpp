@@ -34,35 +34,38 @@ boost::optional<Point3d> PointFinder::find_best_point_around_coordinates(
 std::vector<Point3d> PointFinder::create_possible_points(Point2d &center_point)
 {
     std::vector<Point3d> scattered_points;
-    // Create 9 points, 8 of which are arranged in a square around the center point, and center
-    // point itself being the 9th.
-    for (int i = 0; i < 9; i++)
+    unsigned int x_min, x_max, y_min, y_max;
+    setup_scatter_bounds(center_point, x_min, x_max, y_min, y_max);
+    for (unsigned int x = x_min; x <= x_max; x += SCATTER_STEP_DISTANCE_)
     {
-        /* Scatter according to this pattern:
-         *
-         * i=0 | i=3 | i=6
-         * ----|-----|----
-         * i=1 | i=4 | i=7
-         * ----|-----|----
-         * i=2 | i=5 | i=8
-         */
-        unsigned int x = center_point.x + ((int)i/3) * 2 * SCATTER_DISTANCE_ - SCATTER_DISTANCE_;
-        unsigned int y = center_point.y + i % 3 * 2 * SCATTER_DISTANCE_ - SCATTER_DISTANCE_;
-        // Make sure we don't go out of image bounds
-        x = boost::algorithm::clamp(x, 0, image_max_x_);
-        y = boost::algorithm::clamp(y, 0, image_max_y_);
-        Point2d point2d{
-            .x = x,
-            .y = y
-        };
-
-        boost::optional<Point3d> point3d = create_point3d(point2d);
-        if(point3d)
+        for(unsigned int y = y_min; y <= y_max; y += SCATTER_STEP_DISTANCE_)
         {
-            scattered_points.push_back(*point3d);
+            Point2d point2d{
+                .x = x,
+                .y = y,
+            };
+
+            boost::optional<Point3d> point3d = create_point3d(point2d);
+            if(point3d)
+            {
+                scattered_points.push_back(*point3d);
+            }
         }
     }
     return scattered_points;
+}
+
+void PointFinder::setup_scatter_bounds(const Point2d &center_point,
+                                       unsigned int &x_min, unsigned int &x_max,
+                                       unsigned int &y_min, unsigned int &y_max)
+{
+    unsigned int total_distance = SCATTER_STEPS_ * SCATTER_STEP_DISTANCE_;
+    x_min = center_point.x - total_distance < 0 ? 0 : center_point.x - total_distance;
+    x_max = center_point.x + total_distance > image_max_x_ ?
+        image_max_x_ : center_point.x + total_distance;
+    y_min = center_point.y - total_distance < 0 ? 0 : center_point.y - total_distance;
+    y_max = center_point.y + total_distance > image_max_y_ ?
+        image_max_y_ : center_point.y + total_distance;
 }
 
 Point3d PointFinder::find_best_point(const std::vector<Point3d> &possible_points, const Point3d &center_point)

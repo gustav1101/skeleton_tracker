@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="scatter_distance" value="3" />
+  <arg name="scatter_step_distance" value="1" />
+  <arg name="scatter_steps" value="5" />
   <arg name="resolution" value="368x368" />
 
   <!-- ++++++++++++++++++++++++++ LAUNCH CAMERAS +++++++++++++++++++++++++++++++++++++++++ -->
@@ -21,7 +22,8 @@
     <param name="input_pointcloud" type="str" value="sd/points" />
     <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
     <param name="camera_name" type="str" value="kinect2" />
-    <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
+    <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
     <param name="frame_id" type="str" value="kinect2_link" />
   </node>
 
@@ -39,7 +41,8 @@
     <param name="input_pointcloud" type="str" value="depth_registered/points" />
     <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
     <param name="camera_name" type="str" value="xtion1" />
-    <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
+    <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
     <param name="frame_id" type="str" value="xtion1_depth_frame" />
   </node>
 
@@ -57,7 +60,8 @@
     <param name="input_pointcloud" type="str" value="depth_registered/points" />
     <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
     <param name="camera_name" type="str" value="xtion2" />
-    <param name="scatter_distance" type="double" value="$(arg scatter_distance)" />
+    <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
+    <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
     <param name="frame_id" type="str" value="xtion2_depth_frame" />
   </node>
 

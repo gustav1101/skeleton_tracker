@@ -43,15 +43,18 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
     std::string frame_id = get_param("~frame_id");
     double frame_offset;
     ros::param::param<double>("~x_frame_offset", frame_offset, 0.0);
-    int scatter_distance;
-    ros::param::param<int>("~scatter_distance", scatter_distance, 6);
+    int scatter_step_distance;
+    ros::param::param<int>("~scatter_step_distance", scatter_step_distance, 2);
+    int scatter_steps;
+    ros::param::param<int>("~scatter_steps", scatter_steps, 4);
 
     return RosParams {
         .pose_topic_name = pose_topic_name,
             .pointcloud_topic_name = pointcloud_topic_name,
             .skeleton_topic_name = skeleton_topic_name,
             .frame_id = frame_id,
-            .scatter_distance = scatter_distance,
+            .scatter_step_distance = scatter_step_distance,
+            .scatter_steps = scatter_steps,
             .x_frame_offset = frame_offset};
 }
 

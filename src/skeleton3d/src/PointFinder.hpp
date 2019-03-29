@@ -31,8 +31,10 @@ public:
      *            coordinates to the right.
      */
     PointFinder(
-        int scatter_distance, double frame_offset) :
-        SCATTER_DISTANCE_(scatter_distance), frame_offset_(frame_offset){ };
+        int scatter_step_distance, int scatter_steps, double frame_offset) :
+        SCATTER_STEP_DISTANCE_(scatter_step_distance),
+        SCATTER_STEPS_(scatter_steps),
+        frame_offset_(frame_offset){ };
     ~PointFinder() { };
 
     /**
@@ -89,12 +91,13 @@ private:
     /** Largest valid y coordinate value */
     unsigned int image_max_y_;
     PointCloud::ConstPtr point_cloud_;
-    const int SCATTER_DISTANCE_;
+    const int SCATTER_STEP_DISTANCE_;
+    const int SCATTER_STEPS_;
     const double frame_offset_;
     /** A given point has to be this many meters closer to the camera than
      * the original point to be consiedered "better". */
     const double DEPTH_TOLERANCE_ = 0.01;
-
+    
     /**
      * Create absolute coordinates from coordinates relative to the pointcloud width and height.
      *
@@ -119,6 +122,10 @@ private:
      */
     std::vector<Point3d> create_possible_points(Point2d &center_point);
 
+    void setup_scatter_bounds(const Point2d &center_point,
+                              unsigned int &x_min, unsigned int &x_max,
+                              unsigned int &y_min, unsigned int &y_max);
+    
     /**
      * Convert 2d point to a 3d Point.
      *
