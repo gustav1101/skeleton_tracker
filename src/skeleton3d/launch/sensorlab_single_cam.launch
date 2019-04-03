@@ -5,7 +5,7 @@
 
   <!-- ++++++++++++++++++++++++++ LAUNCH CAMERAS +++++++++++++++++++++++++++++++++++++++++ -->
     
-  <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" />
+  <include file="$(find sensorlab_launch)/launch/sensorlab_kinect_startup.launch" />
 
   <!-- ++++++++++++++++++++++++++ KINECT2 ON LOCAL DEVICE ++++++++++++++++++++++++++++++++ -->
   
@@ -66,7 +66,11 @@
   
   <node name="tf_static_broadcaster" pkg="skeleton3d" type="tf_broadcaster" output="screen" />
 
-  
+  <node name="pose_estimator_vis" pkg="tfpose_ros" type="visualization.py" output="screen" ns="kinect2" >
+    <param name="camera" value="sd/image_color_rect" />
+    <param name="pose" value="pose_estimator/pose" />
+  </node>
+
   <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen" ns="repository" required="true" >
     <param name="position_tolerance" type="double" value="1.2" />
     <param name="skeleton_input" type="str" value="skeleton_input" />
