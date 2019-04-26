@@ -17,7 +17,7 @@
  * Name               | Type   | defaults | Description
  * ------------------ | ------ | -------- | -------
  * position_tolerance | double | 0.3      | Minimum distance between two different Persons before overlap (not euclidian distance!)
- * publish_interval       | double | 0.15     | Time period in s between each publish of masterlist
+ * publish_interval   | double | 0.15     | Time period in s between each publish of masterlist
  * decay_strength     | double | 1.6      | Greater decay strength ages skeleton information faster
  * skeleton_input     | String | required | Topic on which to listen for new skeletons
  * masterlist_ouput   | String | required | Topic on which to publish the skeleton masterlist

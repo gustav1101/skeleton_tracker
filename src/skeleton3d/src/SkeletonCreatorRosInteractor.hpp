@@ -150,6 +150,8 @@ private:
      * @param [in] skeleton_topic_name Name of the topic to publish the skeletons on.
      */
     void create_publisher(const std::string &skeleton_topic_name);
+    
+    void make_sure_window_boundaries_set()
 };
 
 #endif

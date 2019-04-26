@@ -3,9 +3,12 @@
 #include "exceptions.hpp"
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
-using ApproximateTimePolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
+using ApproximateTimePolicy =
+    message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
 
-void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud)
+void SkeletonCreatorRosInteractor::generate_skeleton(
+    const tfpose_ros::Persons::ConstPtr &persons_msg,
+    const PointCloud::ConstPtr &point_cloud)
 {
     // On the first call of this method: Set the window size properties on the skeleton creator
     if (!window_boundaries_set_)
@@ -20,7 +23,8 @@ void SkeletonCreatorRosInteractor::generate_skeleton(const tfpose_ros::Persons::
         return;
     }
 
-    std::vector<skeleton3d::Skeleton3d> skeletons = skeleton_creator_.generate_skeletons(persons_msg->persons, point_cloud);
+    std::vector<skeleton3d::Skeleton3d> skeletons =
+        skeleton_creator_.generate_skeletons(persons_msg->persons, point_cloud);
 
     publish_skeletons(skeletons);
 }

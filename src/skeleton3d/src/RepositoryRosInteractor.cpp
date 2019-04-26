@@ -69,6 +69,6 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "skeleton3d_repository");
     RepositoryRosInteractor interactor(RepositoryRosInteractor::read_params());
-    
+
     ros::spin();
 }
