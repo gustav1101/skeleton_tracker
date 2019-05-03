@@ -11,7 +11,7 @@ SkeletonCreator::~SkeletonCreator()
 
 }
 
-std::vector<skeleton3d::Skeleton3d> SkeletonCreator::generate_skeletons(const std::vector<tfpose_ros::Person> &persons, const PointCloud::ConstPtr &point_cloud)
+std::vector<skeleton3d::Skeleton3d> SkeletonCreator::generate_skeletons(const std::vector<tfpose_ros::Person> &persons, const PointCloud &point_cloud)
 {
     point_finder_.set_point_cloud(point_cloud);
     // For each skeleton created by openpose: transform into 3d skeleton

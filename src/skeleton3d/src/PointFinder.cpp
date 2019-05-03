@@ -127,7 +127,7 @@ void PointFinder::set_window_boundaries(unsigned int image_max_x, unsigned int i
     image_max_y_ = image_max_y-1;
 }
 
-void PointFinder::set_point_cloud(const PointCloud::ConstPtr &point_cloud)
+void PointFinder::set_point_cloud(const PointCloud &point_cloud)
 {
-    point_cloud_ = point_cloud;
+    point_cloud_ = &point_cloud;
 }

@@ -51,7 +51,7 @@ public:
      *
      * @param[in] point_cloud The current pointcloud.
      */
-    void set_point_cloud(const PointCloud::ConstPtr &point_cloud);
+    void set_point_cloud(const PointCloud &point_cloud);
 
     /**
      * Find the "best" point around the center point coordinates.
@@ -90,7 +90,7 @@ private:
     unsigned int image_max_x_;
     /** Largest valid y coordinate value */
     unsigned int image_max_y_;
-    PointCloud::ConstPtr point_cloud_;
+    const PointCloud *point_cloud_;
     const int SCATTER_STEP_DISTANCE_;
     const int SCATTER_STEPS_;
     const double frame_offset_;

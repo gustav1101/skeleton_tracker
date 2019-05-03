@@ -11,13 +11,13 @@ class StaticCloudFilter
     template<class T> using optional = boost::optional<T>;
 
 public:
-    StaticCloudFilter(number_of_messages_to_discard, number_of_calibration_messages) :
+    StaticCloudFilter(int number_of_messages_to_discard, int number_of_calibration_messages) :
         number_of_messages_to_discard_(number_of_messages_to_discard),
         number_of_calibration_messages_(number_of_calibration_messages),
         message_counter_(0),
-        background_vectors_initialised_(false),
+        background_vectors_initialised_(false)
     {};
-    optional<PointCloud> pass_filter(PointCloud::ConstPtr &original_point_cloud);
+    bool pass_filter(PointCloud &original_point_cloud_i);
 
 private:
     const unsigned int number_of_messages_to_discard_;
@@ -26,14 +26,13 @@ private:
     unsigned int message_counter_;
     bool background_vectors_initialised_;
 
-    void calibrate_filter(const PointCloud::ConstPtr &original_point_cloud);
-    PointCloud apply_filter(PointCloud::ConstPtr &original_point_cloud);
+    void calibrate_filter(const PointCloud &original_point_cloud);
+    void apply_filter(PointCloud &original_point_cloud);
     void calibrate_depth_value_at(const Point &point);
     void apply_filter_at(Point &point);
     bool point_should_be_masked(const Point &point);
     void mask_point(Point &point);
     void initialise_background_vectors(unsigned int width, unsigned int height);
-
 };
 
 #endif

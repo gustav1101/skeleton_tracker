@@ -7,6 +7,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <sensor_msgs/PointCloud2.h>
 #include "SkeletonCreator.hpp"
+#include "StaticCloudFilter.hpp"
 
 /**
  * Ros Interactor for the Skeleton Creator class.
@@ -14,15 +15,17 @@
  * This module handles all ros interaction (publishing, subscribing, ...) for the Skeleton Creator. It listens for the tf pose and the pointcloud and calls the SkeletonCreator to generate the skeleton. Both messages (pointcloud and pose) need to have similar timestamps, otherwise the callback will not be called.
  * SkeletonCreator then uses this module to publish the resulting skeletons on a corresponding ros topic.
  * This module also handles reading and passing on of node parameters, some of which are required. The parameters are as follows:
- * Name                  | Type   | defaults | Description
- * --------------------- | ------ | -------- | --------------------------------------------------
- * input_pose            | String | required | Name of tf pose topic (for subscribing)
- * input_pointcloud      | String | required | Name of pointcloud topic (for subscribing)
- * output_skeleton       | String | required | Name of skeleton topic (for publishing)
- * frame_id              | String | required | Name of camera base frame id
- * x_frame_offset        | double | 0.0      | X offset for depth image against pose coorinates
- * scatter_step_distance | int    | 2        | Scatter Distance for PointFinder
- * scatter_steps         | int    | 4        | Number of scatter steps in each direction (as radius, not diameter)
+ * Name                            | Type   | defaults | Description
+ * ------------------------------- | ------ | -------- | --------------------------------------------------
+ * input_pose                      | String | required | Name of tf pose topic (for subscribing)
+ * input_pointcloud                | String | required | Name of pointcloud topic (for subscribing)
+ * output_skeleton                 | String | required | Name of skeleton topic (for publishing)
+ * frame_id                        | String | required | Name of camera base frame id
+ * x_frame_offset                  | double | 0.0      | X offset for depth image against pose coorinates
+ * scatter_step_distance           | int    | 2        | Scatter Distance for PointFinder
+ * scatter_steps                   | int    | 4        | Number of scatter steps in each direction (as radius, not diameter)
+ * number_of_messages_to_discard   | int    | 10       | Number of messages to discard upon initialisation before calibration starts
+ * number_of_calibration_messages  | int    | 5        | Number of messages that will only be used to record the static background
  */
 class SkeletonCreatorRosInteractor
 {
@@ -40,6 +43,8 @@ public:
         const std::string frame_id;
         const int scatter_step_distance;
         const int scatter_steps;
+        const int number_of_messages_to_discard;
+        const int number_of_calibration_messages;
         const double x_frame_offset;
     };
 
@@ -53,6 +58,9 @@ public:
             params.scatter_step_distance,
             params.scatter_steps,
             params.x_frame_offset),
+        static_cloud_filter_(
+            params.number_of_messages_to_discard,
+            params.number_of_calibration_messages),
         tfpose_subscriber_(
             node_handle_,
             params.pose_topic_name,
@@ -92,6 +100,7 @@ private:
     static const int INPUT_QUEUE_SIZE_ = 30;
     ros::NodeHandle node_handle_;
     SkeletonCreator skeleton_creator_;
+    StaticCloudFilter static_cloud_filter_;
     /** Subscriber to the tf openpose topic */
     /* Note that the subscribers and synchronizer are set as pointers because
      * they are set in their own methods to avoid cluttering (and thus they cannot be
@@ -125,7 +134,8 @@ private:
      * @param [in] persons_msg The Persons message that holds the tfpose data.
      * @param [in] point_cloud The pointcloud message for depth information, with only 3d position of points being the relevant information. (Does not need to be depth_registered.)
      */
-    void generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg, const PointCloud::ConstPtr &point_cloud);
+    void generate_skeleton(const tfpose_ros::Persons::ConstPtr &persons_msg,
+                           const PointCloud::ConstPtr &point_cloud);
 
     /**
      * Publish given list of skeletons on Ros.
@@ -151,7 +161,12 @@ private:
      */
     void create_publisher(const std::string &skeleton_topic_name);
     
-    void make_sure_window_boundaries_set()
+    void make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud);
+
+    bool any_person_found(const tfpose_ros::Persons::ConstPtr &persons_msg);
+
+    void process_persons_to_skeletons(const tfpose_ros::Persons::ConstPtr &persons_msg,
+                                      PointCloud::ConstPtr point_cloud);
 };
 
 #endif

@@ -41,7 +41,7 @@ public:
      */
     std::vector<skeleton3d::Skeleton3d> generate_skeletons(
         const std::vector<tfpose_ros::Person> &persons,
-        const PointCloud::ConstPtr &point_cloud);
+        const PointCloud &point_cloud);
 
     /**
      * Set the image size of pointcloud image in point finder.

@@ -6,27 +6,19 @@ using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using ApproximateTimePolicy =
     message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
 
+
 void SkeletonCreatorRosInteractor::generate_skeleton(
     const tfpose_ros::Persons::ConstPtr &persons_msg,
     const PointCloud::ConstPtr &point_cloud)
 {
     // On the first call of this method: Set the window size properties on the skeleton creator
-    if (!window_boundaries_set_)
-    {
-        skeleton_creator_.set_image_size(point_cloud->width, point_cloud->height);
-        window_boundaries_set_ = true;
-    }
-
-    if (persons_msg->persons.size() == 0)
+    make_sure_window_boundaries_set(point_cloud);
+    if ( !any_person_found(persons_msg) )
     {
         ROS_WARN("Found Message with 0 Persons. Maybe resolution is set too low?");
         return;
     }
-
-    std::vector<skeleton3d::Skeleton3d> skeletons =
-        skeleton_creator_.generate_skeletons(persons_msg->persons, point_cloud);
-
-    publish_skeletons(skeletons);
+    process_persons_to_skeletons(persons_msg, point_cloud);
 }
 
 void SkeletonCreatorRosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons)
@@ -51,6 +43,12 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
     ros::param::param<int>("~scatter_step_distance", scatter_step_distance, 2);
     int scatter_steps;
     ros::param::param<int>("~scatter_steps", scatter_steps, 4);
+    int number_of_messages_to_discard;
+    ros::param::param<int>("~number_of_messages_to_discard", number_of_messages_to_discard, 10);
+    int number_of_calibration_messages;
+    ros::param::param<int>("~number_of_calibration_messages",
+                           number_of_calibration_messages,
+                           5);
 
     return RosParams {
         .pose_topic_name = pose_topic_name,
@@ -59,6 +57,8 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
             .frame_id = frame_id,
             .scatter_step_distance = scatter_step_distance,
             .scatter_steps = scatter_steps,
+            .number_of_messages_to_discard = number_of_messages_to_discard,
+            .number_of_calibration_messages = number_of_calibration_messages,
             .x_frame_offset = frame_offset};
 }
 
@@ -77,6 +77,36 @@ void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_
     skeleton_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
         skeleton_topic_name,
         50);
+}
+
+void SkeletonCreatorRosInteractor::make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud)
+{
+    if (!window_boundaries_set_)
+    {
+        skeleton_creator_.set_image_size(point_cloud->width, point_cloud->height);
+        window_boundaries_set_ = true;
+    }
+}
+
+bool SkeletonCreatorRosInteractor::any_person_found(const tfpose_ros::Persons::ConstPtr &persons_msg)
+{
+    return persons_msg->persons.size() == 0;
+}
+
+void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
+    const tfpose_ros::Persons::ConstPtr &persons_msg,
+    const PointCloud::ConstPtr point_cloud)
+{
+    PointCloud filtered_cloud = *point_cloud;
+    if (!static_cloud_filter_.pass_filter(filtered_cloud))
+    {
+        return;
+    }
+    
+    std::vector<skeleton3d::Skeleton3d> skeletons =
+        skeleton_creator_.generate_skeletons(persons_msg->persons, filtered_cloud);
+
+    publish_skeletons(skeletons);
 }
 
 int main(int argc, char** argv)
