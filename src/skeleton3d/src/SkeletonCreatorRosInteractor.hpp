@@ -163,7 +163,7 @@ private:
     
     void make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud);
 
-    bool any_person_found(const tfpose_ros::Persons::ConstPtr &persons_msg);
+    bool no_pose_found(const tfpose_ros::Persons::ConstPtr &persons_msg);
 
     void process_persons_to_skeletons(const tfpose_ros::Persons::ConstPtr &persons_msg,
                                       PointCloud::ConstPtr point_cloud);

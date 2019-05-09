@@ -25,10 +25,13 @@ private:
     std::vector<std::vector<double>> background_z_value_;
     unsigned int message_counter_;
     bool background_vectors_initialised_;
+    bool only_null_values_;
 
     void calibrate_filter(const PointCloud &original_point_cloud);
     void apply_filter(PointCloud &original_point_cloud);
-    void calibrate_depth_value_at(const Point &point);
+    void calibrate_depth_value_at(const Point &point,
+                                  const unsigned int x_pos,
+                                  const unsigned int y_pos);
     void apply_filter_at(Point &point);
     bool point_should_be_masked(const Point &point);
     void mask_point(Point &point);

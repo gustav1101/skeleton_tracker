@@ -35,12 +35,18 @@ bool StaticCloudFilter::pass_filter(PointCloud &original_point_cloud)
 
 void StaticCloudFilter::calibrate_filter(const PointCloud &original_point_cloud)
 {
+    only_null_values_ = true;
     for(unsigned int x = 0; x < original_point_cloud.width; x++)
     {
         for(unsigned int y=0; y < original_point_cloud.height; y++)
         {
-            calibrate_depth_value_at(original_point_cloud.at(x,y));
+            calibrate_depth_value_at(original_point_cloud.at(x,y), x, y);
         }
+    }
+    if (only_null_values_)
+    {
+        ROS_WARN("Only illegal points found during calibration!");
+        message_counter_--;
     }
 }
 
@@ -55,14 +61,21 @@ void StaticCloudFilter::apply_filter(PointCloud &original_point_cloud)
     }
 }
 
-void StaticCloudFilter::calibrate_depth_value_at(const Point &point)
+void StaticCloudFilter::calibrate_depth_value_at(const Point &point,
+                                                 const unsigned int x_pos,
+                                                 const unsigned int y_pos)
 {
-    double &stored_z_value = background_z_value_.at(point.x).at(point.y);
+    if (std::isnan(point.x) or std::isnan(point.y))
+    {
+        return;
+    }
+    double &stored_z_value = background_z_value_.at(x_pos).at(y_pos);
     const double &current_z_value = point.z;
     if(stored_z_value > current_z_value)
     {
         stored_z_value = current_z_value;
     }
+    only_null_values_ = false;
 }
 
 void StaticCloudFilter::apply_filter_at(Point &point)
