@@ -28,14 +28,20 @@ private:
     bool only_null_values_;
 
     void calibrate_filter(const PointCloud &original_point_cloud);
+    void calibrate_depth_value_at(const unsigned int &x_pos,
+                                  const unsigned int &y_pos,
+                                  const Point &point);
+    void update_filter_depth_value(double &stored_value, const double &new_value);
     void apply_filter(PointCloud &original_point_cloud);
-    void calibrate_depth_value_at(const Point &point,
-                                  const unsigned int x_pos,
-                                  const unsigned int y_pos);
-    void apply_filter_at(Point &point);
-    bool point_should_be_masked(const Point &point);
+    void apply_filter_at(const unsigned int &x_pos,
+                         const unsigned int &y_pos,
+                         Point &point);
+    bool point_should_be_masked(const Point &point,
+                                const double &filter_z_value);
     void mask_point(Point &point);
     void initialise_background_vectors(unsigned int width, unsigned int height);
+    bool point_has_nan_values(const Point &point);
+    double& get_filter_depth_value(const unsigned int &x, const unsigned int &y);
 };
 
 #endif

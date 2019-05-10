@@ -40,7 +40,7 @@ void StaticCloudFilter::calibrate_filter(const PointCloud &original_point_cloud)
     {
         for(unsigned int y=0; y < original_point_cloud.height; y++)
         {
-            calibrate_depth_value_at(original_point_cloud.at(x,y), x, y);
+            calibrate_depth_value_at(x, y, original_point_cloud.at(x,y));
         }
     }
     if (only_null_values_)
@@ -50,46 +50,55 @@ void StaticCloudFilter::calibrate_filter(const PointCloud &original_point_cloud)
     }
 }
 
+void StaticCloudFilter::calibrate_depth_value_at(const unsigned int &x_pos,
+                                                 const unsigned int &y_pos,
+                                                 const Point &point
+)
+{
+    if (point_has_nan_values(point))
+    {
+        return;
+    }
+    only_null_values_ = false;
+    double &stored_z_value = get_filter_depth_value(x_pos, y_pos);
+    const double &new_z_value = point.z;
+    update_filter_depth_value(stored_z_value, new_z_value);
+}
+
+void StaticCloudFilter::update_filter_depth_value(double &stored_value, const double &new_value)
+{
+    if(stored_value > new_value)
+    {
+        stored_value = new_value;
+    }
+}
+
 void StaticCloudFilter::apply_filter(PointCloud &original_point_cloud)
 {
     for(unsigned int x = 0; x < original_point_cloud.width; x++)
     {
         for(unsigned int y=0; y < original_point_cloud.height; y++)
         {
-            apply_filter_at(original_point_cloud.at(x,y));
+            apply_filter_at(x, y, original_point_cloud.at(x,y));
         }
     }
 }
 
-void StaticCloudFilter::calibrate_depth_value_at(const Point &point,
-                                                 const unsigned int x_pos,
-                                                 const unsigned int y_pos)
+void StaticCloudFilter::apply_filter_at(const unsigned int &x_pos,
+                                        const unsigned int &y_pos,
+                                        Point &point)
 {
-    if (std::isnan(point.x) or std::isnan(point.y))
-    {
-        return;
-    }
-    double &stored_z_value = background_z_value_.at(x_pos).at(y_pos);
-    const double &current_z_value = point.z;
-    if(stored_z_value > current_z_value)
-    {
-        stored_z_value = current_z_value;
-    }
-    only_null_values_ = false;
-}
-
-void StaticCloudFilter::apply_filter_at(Point &point)
-{
-    if(point_should_be_masked(point))
+    double &filter_z_value = get_filter_depth_value(x_pos, y_pos);
+    if( point_should_be_masked(point, filter_z_value) )
     {
         mask_point(point);
     }
 }
 
-bool StaticCloudFilter::point_should_be_masked(const Point &point)
+bool StaticCloudFilter::point_should_be_masked(const Point &point,
+                                               const double &filter_z_value)
 {
-    double &stored_z_value = background_z_value_.at(point.x).at(point.y);
-    return point.z <= stored_z_value;
+    return point.z <= filter_z_value;
 }
 
 void StaticCloudFilter::mask_point(Point &point)
@@ -102,4 +111,14 @@ void StaticCloudFilter::initialise_background_vectors(unsigned int width, unsign
     std::vector<double> sample_row_vector(width, 0.0);
     background_z_value_ = std::vector<std::vector<double>>(height, sample_row_vector);
     background_vectors_initialised_ = true;
+}
+
+bool StaticCloudFilter::point_has_nan_values(const Point &point)
+{
+    return (std::isnan(point.x) or std::isnan(point.y) or std::isnan(point.z));
+}
+
+double& StaticCloudFilter::get_filter_depth_value(const unsigned int &x, const unsigned int &y)
+{
+    return background_z_value_.at(y).at(x);
 }
