@@ -98,10 +98,10 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     const PointCloud::ConstPtr point_cloud)
 {
     PointCloud filtered_cloud = *point_cloud;
-    if (!static_cloud_filter_.pass_filter(filtered_cloud))
-    {
-        return;
-    }
+    // if (!static_cloud_filter_.pass_filter(filtered_cloud))
+    // {
+    //     return;
+    // }
     
     std::vector<skeleton3d::Skeleton3d> skeletons =
         skeleton_creator_.generate_skeletons(persons_msg->persons, filtered_cloud);

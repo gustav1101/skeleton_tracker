@@ -7,6 +7,7 @@
   <!-- ++++++++++++++++++++++++++ LAUNCH CAMERAS +++++++++++++++++++++++++++++++++++++++++ -->
     
   <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" />
+  
 
   <!-- ++++++++++++++++++++++++++ KINECT2 ON LOCAL DEVICE ++++++++++++++++++++++++++++++++ -->
   

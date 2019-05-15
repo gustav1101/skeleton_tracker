@@ -1,7 +1,9 @@
 #include "RepositoryRosInteractor.hpp"
 #include "RepositoryDataStructures.hpp"
+#include <skeleton3d/Skeleton3d.h>
 
 using TimedSkeleton = repository_data_structures::TimedSkeleton;
+using Skeleton = skeleton3d::Skeleton3d;
 
 RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
 {

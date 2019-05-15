@@ -3,9 +3,9 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
-#include <skeleton3d/BodyPart3d.h>
 #include <skeleton3d/Skeleton3d.h>
 #include <skeleton3d/Skeletons3d.h>
+#include <skeleton3d/BodyPart3d.h>
 #include <tf/transform_listener.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>

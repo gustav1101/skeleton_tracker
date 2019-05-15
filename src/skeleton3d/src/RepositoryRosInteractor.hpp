@@ -49,9 +49,9 @@ public:
                                                                       tf_listener_,
                                                                       params.global_frame_id,
                                                                       MESSAGE_QUEUE_SIZE_),
-                                                   global_frame_(params.global_frame_id),
                                                    skeleton_transformer_(tf_listener_,
-                                                                         params.global_frame_id)
+                                                                         params.global_frame_id),
+                                                   global_frame_(params.global_frame_id)
     {
         setup_topic_names(params.publisher_topic, params.publish_interval);
     }

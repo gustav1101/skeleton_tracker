@@ -8,6 +8,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include "SkeletonCreator.hpp"
 #include "StaticCloudFilter.hpp"
+#include <tfpose_ros/Persons.h>
 
 /**
  * Ros Interactor for the Skeleton Creator class.
