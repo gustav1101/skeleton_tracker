@@ -82,6 +82,7 @@ void StaticCloudFilter::apply_filter(PointCloud &original_point_cloud)
             apply_filter_at(x, y, original_point_cloud.at(x,y));
         }
     }
+    ROS_INFO("Filter applied");
 }
 
 void StaticCloudFilter::apply_filter_at(const unsigned int &x_pos,

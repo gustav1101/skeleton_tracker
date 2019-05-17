@@ -29,7 +29,6 @@ TimedSkeleton RepositoryTFTransformer::transform_to_global_frame(const Skeleton 
                                                                             source_frame,
                                                                             time_stamp));
     }
-    ROS_INFO("Printing out skeleton from %s!", source_frame.c_str());
     return timed_skeleton;
 }
 
