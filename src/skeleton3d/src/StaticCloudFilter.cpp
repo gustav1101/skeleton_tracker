@@ -9,12 +9,11 @@ bool StaticCloudFilter::pass_filter(PointCloud &original_point_cloud)
     message_counter_++;
     if(message_counter_ <= number_of_messages_to_discard_)
     {
-        ROS_INFO("Discarding message");
+        ROS_INFO("Filter: Discarding first messages...");
         return false;
     }
     if(!background_vectors_initialised_)
     {
-        ROS_INFO("Creating Background Vector");
         initialise_background_vectors(
             original_point_cloud.width,
             original_point_cloud.height);
@@ -22,7 +21,7 @@ bool StaticCloudFilter::pass_filter(PointCloud &original_point_cloud)
 
     if(message_counter_ <= number_of_messages_to_discard_ + number_of_calibration_messages_)
     {
-        ROS_INFO("Callibrating Filter");
+        ROS_INFO("Filter: Callibrating...");
         calibrate_filter(original_point_cloud);
         return false;
     }
@@ -82,7 +81,6 @@ void StaticCloudFilter::apply_filter(PointCloud &original_point_cloud)
             apply_filter_at(x, y, original_point_cloud.at(x,y));
         }
     }
-    ROS_INFO("Filter applied");
 }
 
 void StaticCloudFilter::apply_filter_at(const unsigned int &x_pos,
