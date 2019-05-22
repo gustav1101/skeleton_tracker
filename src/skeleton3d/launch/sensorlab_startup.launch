@@ -52,7 +52,7 @@
       <param name="camera_name" type="str" value="xtion1" />
       <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
-      <param name="frame_id" type="str" value="xtion1_depth_frame" />
+      <param name="frame_id" type="str" value="xtion1_depth_optical_frame" />
     </node>
 
   </group>
@@ -73,7 +73,7 @@
       <param name="camera_name" type="str" value="xtion2" />
       <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
-      <param name="frame_id" type="str" value="xtion2_depth_frame" />
+      <param name="frame_id" type="str" value="xtion2_depth_optical_frame" />
     </node>
 
   </group>

@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <node name="tf_broadcaster_test" pkg="skeleton3d" type="tf_broadcaster" output="screen" />
-
-  <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" />
-</launch>
