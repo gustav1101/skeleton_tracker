@@ -2,6 +2,7 @@
 <launch>
   <arg name="scatter_step_distance" value="1" />
   <arg name="scatter_steps" value="3" />
+  <arg name="calibration_messages" value="5" />
   <arg name="resolution" value="368x368" />
   <arg name="xtion1_active" default="true" />
   <arg name="xtion2_active" default="true" />
@@ -24,7 +25,7 @@
       <param name="resolution" value="$(arg resolution)" />
     </node>
 
-    <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" required="true">
+    <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" required="true" launch-prefix="xterm -e gdb --args">
       <param name="input_pose" type="str" value="pose_estimator/pose" />
       <param name="input_pointcloud" type="str" value="sd/points" />
       <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
@@ -32,6 +33,7 @@
       <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
       <param name="frame_id" type="str" value="kinect2_link" />
+      <param name="number_of_calibration_messages" type="int" value="$(arg calibration_messages)" />
     </node>
 
   </group>
@@ -53,6 +55,7 @@
       <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
       <param name="frame_id" type="str" value="xtion1_depth_optical_frame" />
+      <param name="number_of_calibration_messages" type="int" value="$(arg calibration_messages)" />
     </node>
 
   </group>
@@ -74,6 +77,7 @@
       <param name="scatter_step_distance" type="int" value="$(arg scatter_step_distance)" />
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
       <param name="frame_id" type="str" value="xtion2_depth_optical_frame" />
+      <param name="number_of_calibration_messages" type="int" value="$(arg calibration_messages)" />
     </node>
 
   </group>

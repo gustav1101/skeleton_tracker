@@ -77,6 +77,9 @@ void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_
     skeleton_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
         skeleton_topic_name,
         50);
+    filtered_cloud_publisher_ = node_handle_.advertise<PointCloud>(
+        "filtered_cloud",
+        50);
 }
 
 void SkeletonCreatorRosInteractor::make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud)
@@ -102,10 +105,12 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     {
         return;
     }
+    filtered_cloud_publisher_.publish(filtered_cloud);
     
     std::vector<skeleton3d::Skeleton3d> skeletons =
         skeleton_creator_.generate_skeletons(persons_msg->persons, filtered_cloud);
-
+    
+    
     publish_skeletons(skeletons);
 }
 

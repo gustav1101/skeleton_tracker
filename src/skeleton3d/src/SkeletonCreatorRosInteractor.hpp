@@ -114,6 +114,7 @@ private:
     message_filters::Synchronizer<ApproximateTimePolicy> message_synchronizer_;
     /** Output topic for skeletons */
     ros::Publisher skeleton_publisher_;
+    ros::Publisher filtered_cloud_publisher_;
     
     std::string frame_id_;
     /** Boundaries need to be set before camera input can be evaluated. This happens in generate_skeletons(). */

@@ -66,9 +66,9 @@ void StaticCloudFilter::calibrate_depth_value_at(const unsigned int &x_pos,
 
 void StaticCloudFilter::update_filter_depth_value(double &stored_value, const double &new_value)
 {
-    if(stored_value > new_value)
+    if(stored_value < new_value)
     {
-        stored_value = new_value;
+        stored_value = 1.1 * new_value;  // Add 10% radius tolerance to that value
     }
 }
 
@@ -87,6 +87,10 @@ void StaticCloudFilter::apply_filter_at(const unsigned int &x_pos,
                                         const unsigned int &y_pos,
                                         Point &point)
 {
+    if(point_has_nan_values(point))
+    {
+        return;
+    }
     double &filter_z_value = get_filter_depth_value(x_pos, y_pos);
     if( point_should_be_masked(point, filter_z_value) )
     {
@@ -102,7 +106,7 @@ bool StaticCloudFilter::point_should_be_masked(const Point &point,
 
 void StaticCloudFilter::mask_point(Point &point)
 {
-    point.x = point.y = point.z = std::numeric_limits<double>::quiet_NaN();
+    point.x = point.y = point.z = 0.0;//std::numeric_limits<double>::quiet_NaN();
 }
 
 void StaticCloudFilter::initialise_background_vectors(unsigned int width, unsigned int height)
