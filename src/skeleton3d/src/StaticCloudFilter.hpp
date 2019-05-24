@@ -21,7 +21,8 @@ public:
         successive_unsuccessful_calibration_attempts_(0),
         max_number_of_calibration_pixels_(0),
         current_number_of_calibrated_pixels(0),
-        current_filter_status_(pointcloud_filter_status::Status::calibrating)
+        current_filter_status_(pointcloud_filter_status::Status::calibrating),
+        number_of_messages_used_for_calibration_(0)
     {};
     pointcloud_filter_status::Status pass_filter(PointCloud &original_point_cloud_i);
 
@@ -37,7 +38,8 @@ private:
     unsigned int max_number_of_calibration_pixels_;
     unsigned int current_number_of_calibrated_pixels;
     pointcloud_filter_status::Status current_filter_status_;
-
+    unsigned int number_of_messages_used_for_calibration_;
+    
     void make_sure_filter_is_calibrated(
         const PointCloud &observed_point_cloud);
     bool calibration_finished();

@@ -48,6 +48,11 @@ void StaticCloudFilter::make_sure_filter_is_calibrated(const PointCloud &observe
         initialise_background_vectors(width, height);
     }
 
+    if(++number_of_messages_used_for_calibration_ > number_of_calibration_messages_)
+    {
+        throw pointcloud_filter_status::CalibrationAborted();
+    }
+    
     calibrate_filter(observed_point_cloud);
 
     if(sufficient_pixels_calibrated())

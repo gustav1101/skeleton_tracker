@@ -14,11 +14,6 @@ void SkeletonCreatorRosInteractor::generate_skeleton(
 {
     // On the first call of this method: Set the window size properties on the skeleton creator
     make_sure_window_boundaries_set(point_cloud);
-    if ( no_pose_found(persons_msg) )
-    {
-        ROS_WARN("Found Message with 0 Persons. Maybe resolution is set too low?");
-        return;
-    }
     process_persons_to_skeletons(persons_msg, point_cloud);
 }
 
@@ -49,7 +44,7 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
     int number_of_calibration_messages;
     ros::param::param<int>("~number_of_calibration_messages",
                            number_of_calibration_messages,
-                           5);
+                           20);
 
     return RosParams {
         .pose_topic_name = pose_topic_name,
@@ -108,6 +103,12 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
         return;
     }
     filtered_cloud_publisher_.publish(filtered_cloud);
+
+    if ( no_pose_found(persons_msg) )
+    {
+        ROS_WARN("Found Message with 0 Persons. Maybe resolution is set too low?");
+        return;
+    }
     
     std::vector<skeleton3d::Skeleton3d> skeletons =
         skeleton_creator_.generate_skeletons(persons_msg->persons, filtered_cloud);

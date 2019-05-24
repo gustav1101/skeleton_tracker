@@ -26,7 +26,7 @@
  * scatter_step_distance           | int    | 2        | Scatter Distance for PointFinder
  * scatter_steps                   | int    | 4        | Number of scatter steps in each direction (as radius, not diameter)
  * number_of_messages_to_discard   | int    | 10       | Number of messages to discard upon initialisation before calibration starts
- * number_of_calibration_messages  | int    | 5        | Number of messages that will only be used to record the static background
+ * number_of_calibration_messages  | int    | 20       | Number of messages that will only be used to record the static background
  */
 class SkeletonCreatorRosInteractor
 {
