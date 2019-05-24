@@ -1,6 +1,7 @@
 #include "SkeletonCreatorRosInteractor.hpp"
 #include <skeleton3d/Skeletons3d.h>
 #include "exceptions.hpp"
+#include "FilterStatus.hpp"
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using ApproximateTimePolicy =
@@ -101,7 +102,8 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     const PointCloud::ConstPtr point_cloud)
 {
     PointCloud filtered_cloud = *point_cloud;
-    if (!static_cloud_filter_.pass_filter(filtered_cloud))
+    if (static_cloud_filter_.pass_filter(filtered_cloud) !=
+        pointcloud_filter_status::Status::ready)
     {
         return;
     }
