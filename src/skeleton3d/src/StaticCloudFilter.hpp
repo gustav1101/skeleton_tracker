@@ -15,7 +15,7 @@ public:
     StaticCloudFilter(int number_of_messages_to_discard, int number_of_calibration_messages) :
         number_of_messages_to_discard_(number_of_messages_to_discard),
         number_of_calibration_messages_(number_of_calibration_messages),
-        percentage_of_pixels_to_calibrate_(0.99),
+        percentage_of_pixels_to_calibrate_(0.95),
         discarded_messages_counter_(0),
         calibration_prepared_(false),
         successive_unsuccessful_calibration_attempts_(0),

@@ -125,6 +125,16 @@ private:
     void setup_scatter_bounds(const Point2d &center_point,
                               unsigned int &x_min, unsigned int &x_max,
                               unsigned int &y_min, unsigned int &y_max);
+
+    double point_value(const Point3d &point,
+                       const double &median_z_value,
+                       const Point3d &center_point);
+    
+    double distance_from_median_z(const Point3d &point, const double &median_z_value);
+    
+    double distance_from_center_point(const Point3d &point, const Point3d &center_point);
+    
+    double find_median_z(const std::vector<Point3d> &points);
     
     /**
      * Convert 2d point to a 3d Point.

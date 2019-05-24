@@ -157,7 +157,7 @@ bool StaticCloudFilter::point_should_be_masked(const Point &point,
 
 void StaticCloudFilter::mask_point(Point &point)
 {
-    point.x = point.y = point.z = 0.0;//std::numeric_limits<double>::quiet_NaN();
+    point.x = point.y = point.z = std::numeric_limits<double>::quiet_NaN();
 }
 
 void StaticCloudFilter::prepare_calibration(unsigned int cloud_width, unsigned int cloud_height)

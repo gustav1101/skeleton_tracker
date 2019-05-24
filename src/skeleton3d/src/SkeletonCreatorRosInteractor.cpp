@@ -112,7 +112,6 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     std::vector<skeleton3d::Skeleton3d> skeletons =
         skeleton_creator_.generate_skeletons(persons_msg->persons, filtered_cloud);
     
-    
     publish_skeletons(skeletons);
 }
 
