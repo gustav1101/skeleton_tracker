@@ -96,12 +96,13 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     const tfpose_ros::Persons::ConstPtr &persons_msg,
     const PointCloud::ConstPtr point_cloud)
 {
-    PointCloud filtered_cloud = *point_cloud;
-    if (static_cloud_filter_.pass_filter(filtered_cloud) !=
-        pointcloud_filter_status::Status::ready)
+    if (static_cloud_filter_.get_filter_status() ==
+        pointcloud_filter_status::Status::calibrating)
     {
+        static_cloud_filter_.calibrate_filter(point_cloud);
         return;
     }
+    PointCloud filtered_cloud = *point_cloud;
     filtered_cloud_publisher_.publish(filtered_cloud);
 
     if ( no_pose_found(persons_msg) )

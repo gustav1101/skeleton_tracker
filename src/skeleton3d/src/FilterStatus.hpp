@@ -5,6 +5,7 @@ namespace pointcloud_filter_status
 {
     enum Status {calibrating, ready};
     class CalibrationAborted : public std::exception {};
+    class FilterNotReady : public std::exception {};
 }
 
 #endif
