@@ -92,17 +92,29 @@ bool SkeletonCreatorRosInteractor::no_pose_found(const tfpose_ros::Persons::Cons
     return (persons_msg->persons.size() == 0);
 }
 
+void SkeletonCreatorRosInteractor::calibrate_filter(const PointCloud::ConstPtr &point_cloud)
+{
+    static_cloud_filter_.calibrate_filter(point_cloud);
+    if (static_cloud_filter_.get_filter_status() == pointcloud_filter_status::Status::ready)
+    {
+        switch_to_skeleton_generation();
+    }
+}
+
+void SkeletonCreatorRosInteractor::switch_to_skeleton_generation()
+{
+    pointcloud_subscriber_for_calibration_.shutdown();
+    message_synchronizer_.registerCallback(
+        boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
+    create_publisher(skeleton_topic_name_);
+}
+
 void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     const tfpose_ros::Persons::ConstPtr &persons_msg,
     const PointCloud::ConstPtr point_cloud)
 {
-    if (static_cloud_filter_.get_filter_status() ==
-        pointcloud_filter_status::Status::calibrating)
-    {
-        static_cloud_filter_.calibrate_filter(point_cloud);
-        return;
-    }
     PointCloud filtered_cloud = *point_cloud;
+    static_cloud_filter_.pass_filter(filtered_cloud);
     filtered_cloud_publisher_.publish(filtered_cloud);
 
     if ( no_pose_found(persons_msg) )

@@ -62,6 +62,12 @@ public:
         static_cloud_filter_(
             params.number_of_messages_to_discard,
             params.number_of_calibration_messages),
+        pointcloud_subscriber_for_calibration_(
+            node_handle_.subscribe(
+                params.pointcloud_topic_name,
+                INPUT_QUEUE_SIZE_,
+                &SkeletonCreatorRosInteractor::calibrate_filter,
+                this)),
         tfpose_subscriber_(
             node_handle_,
             params.pose_topic_name,
@@ -74,15 +80,9 @@ public:
             ApproximateTimePolicy(INPUT_QUEUE_SIZE_),
             tfpose_subscriber_,
             pointcloud_subscriber_),
-        frame_id_(params.frame_id)
-    {
-        message_synchronizer_.registerCallback(
-            boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
-        create_publisher(params.skeleton_topic_name);
-        ROS_INFO("Scatter steps: %i, Scatter distance: %i",
-                 params.scatter_steps,
-                 params.scatter_step_distance);
-    }
+        frame_id_(params.frame_id),
+        skeleton_topic_name_(params.skeleton_topic_name)
+    {}
     
     ~SkeletonCreatorRosInteractor() {}
 
@@ -102,11 +102,8 @@ private:
     ros::NodeHandle node_handle_;
     SkeletonCreator skeleton_creator_;
     StaticCloudFilter static_cloud_filter_;
+    ros::Subscriber pointcloud_subscriber_for_calibration_;
     /** Subscriber to the tf openpose topic */
-    /* Note that the subscribers and synchronizer are set as pointers because
-     * they are set in their own methods to avoid cluttering (and thus they cannot be
-     * initialised in the initialization list).
-     */
     message_filters::Subscriber<tfpose_ros::Persons> tfpose_subscriber_;
     /** Pointcloud subscriber for retrieving depth information */
     message_filters::Subscriber<PointCloud> pointcloud_subscriber_;
@@ -117,6 +114,7 @@ private:
     ros::Publisher filtered_cloud_publisher_;
     
     std::string frame_id_;
+    std::string skeleton_topic_name_;
     /** Boundaries need to be set before camera input can be evaluated. This happens in generate_skeletons(). */
     bool window_boundaries_set_ = false;
 
@@ -146,16 +144,10 @@ private:
      */
     void publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons);
 
-    /**
-     * Setup listener topics as well as synchronizer.
-     *
-     * For the listeners, an approximate time policy is used to call the callback with messages having similar timestamps.
-     *
-     * @param [in] pose_topic_name Name of the ros topic to listen on for the tf pose.
-     * @param [in] poincloud_topic_name Name of the ros topic to listen on for the pointcloud.
-     */
-    void create_listeners(const std::string &pose_topic_name, const std::string &pointcloud_topic_name);
+    void calibrate_filter(const PointCloud::ConstPtr &point_cloud);
 
+    void switch_to_skeleton_generation();
+    
     /**
      * Setup the publisher to publish skeletons.
      *
