@@ -26,6 +26,10 @@ void StaticCloudFilter::calibrate_filter(const PointCloud::ConstPtr &observed_po
                  percentage_of_pixels_calibrated());
         finalise_calibration();
     }
+    if(calibration_finished())
+    {
+        create_negative(observed_point_cloud);
+    }
 }
 
 void StaticCloudFilter::pass_filter(PointCloud &original_point_cloud)
@@ -74,7 +78,31 @@ bool StaticCloudFilter::calibration_finished()
 
 void StaticCloudFilter::finalise_calibration()
 {
+    set_final_filter_values();
     current_filter_status_ = pointcloud_filter_status::Status::ready;
+}
+
+void StaticCloudFilter::set_final_filter_values()
+{
+    for (unsigned int x = 0; x < preliminary_background_z_value_.size(); x++)
+    {
+        for(unsigned int y = 0; y < preliminary_background_z_value_.size(); y++)
+        {
+            background_z_value_.at(x).at(y) = median_depth_value(preliminary_background_z_value_
+                                                     .at(x).at(y))*0.95;
+        }
+    }
+}
+
+double StaticCloudFilter::median_depth_value(std::vector<double> &depth_values)
+{
+    if(depth_values.empty())
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    size_t middle_index = depth_values.size() / 2;
+    nth_element(depth_values.begin(), depth_values.begin()+middle_index, depth_values.end());
+    return depth_values.at(middle_index);
 }
 
 void StaticCloudFilter::check_if_calibration_finished()
@@ -120,7 +148,8 @@ void StaticCloudFilter::check_progress_on_current_iteration(const unsigned int p
 
 bool StaticCloudFilter::made_progress_in_current_calibration_iteration(const unsigned int pixels_calibrated_before_current_iter)
 {
-    return pixels_calibrated_before_current_iter >= current_number_of_calibrated_pixels * 1.05;
+    return pixels_calibrated_before_current_iter + minimum_calibration_pixel_step_
+        <= current_number_of_calibrated_pixels;
 }
 
 void StaticCloudFilter::calibrate_filter_matrix(const PointCloud::ConstPtr
@@ -145,8 +174,7 @@ void StaticCloudFilter::calibrate_filter_matrix(const PointCloud::ConstPtr
 void StaticCloudFilter::calibrate_filter_for_position(const unsigned int &x_pos,
                                                       const unsigned int &y_pos,
                                                       const Point &point,
-                                                      bool &only_null_values_encountered
-    )
+                                                      bool &only_null_values_encountered)
 {
     if (point_has_nan_values(point))
     {
@@ -154,18 +182,24 @@ void StaticCloudFilter::calibrate_filter_for_position(const unsigned int &x_pos,
     }
     only_null_values_encountered = false;
 
-    double &stored_z_value = get_filter_depth_value(x_pos, y_pos);
+    std::vector<double> &stored_z_value = get_preliminary_filter_values(x_pos, y_pos);
     const double &new_z_value = point.z;
     update_filter_depth_value(stored_z_value, new_z_value);
 }
 
-void StaticCloudFilter::update_filter_depth_value(double &stored_value, const double &new_value)
+void StaticCloudFilter::update_filter_depth_value(std::vector<double> &stored_values,
+                                                  const double &new_value)
 {
-    if(stored_value < new_value)
+    if (stored_values.empty())
     {
-        stored_value = 1.1 * new_value;  // Add 10% radius tolerance to that value
-        current_number_of_calibrated_pixels++;
+        current_number_of_calibrated_pixels++;   
     }
+    stored_values.push_back(new_value);
+}
+
+std::vector<double>& StaticCloudFilter::get_preliminary_filter_values(const unsigned int &x, const unsigned int &y)
+{
+    return preliminary_background_z_value_.at(y).at(x);
 }
 
 void StaticCloudFilter::apply_filter(PointCloud &original_point_cloud)
@@ -197,7 +231,7 @@ void StaticCloudFilter::apply_filter_at(const unsigned int &x_pos,
 bool StaticCloudFilter::point_should_be_masked(const Point &point,
                                                const double &filter_z_value)
 {
-    return point.z <= filter_z_value;
+    return (!std::isnan(filter_z_value) && point.z > filter_z_value);
 }
 
 void StaticCloudFilter::mask_point(Point &point)
@@ -215,12 +249,19 @@ void StaticCloudFilter::set_max_number_of_calibration_pixels(unsigned int width,
                                                              unsigned int height)
 {
     max_number_of_calibration_pixels_ = width * height;
+    minimum_calibration_pixel_step_ = max_number_of_calibration_pixels_ * 0.01;
 }
 
 void StaticCloudFilter::initialise_background_vectors(unsigned int width, unsigned int height)
 {
-    std::vector<double> sample_row_vector(width, 0.0);
-    background_z_value_ = std::vector<std::vector<double>>(height, sample_row_vector);
+    {
+        std::vector<double> sample_row_vector(width, 0.0);
+        background_z_value_ = std::vector<std::vector<double>>(height, sample_row_vector);
+    }
+    {
+        std::vector<std::vector<double>> sample_row_vector(width); 
+        preliminary_background_z_value_ = std::vector<std::vector<std::vector<double>>>(height,sample_row_vector);
+    }
     calibration_prepared_ = true;
 }
 
@@ -232,4 +273,21 @@ bool StaticCloudFilter::point_has_nan_values(const Point &point)
 double& StaticCloudFilter::get_filter_depth_value(const unsigned int &x, const unsigned int &y)
 {
     return background_z_value_.at(y).at(x);
+}
+
+void StaticCloudFilter::create_negative(const PointCloud::ConstPtr original_cloud)
+{
+    negative_cloud = *original_cloud;
+    for(int x = 0; x < original_cloud->width; x++)
+    {
+        for(int y = 0; y < original_cloud->height; y++)
+        {
+            negative_cloud.at(x,y).z = background_z_value_.at(y).at(x);
+        }
+    }
+}
+
+PointCloud& StaticCloudFilter::get_negative()
+{
+    return negative_cloud;
 }

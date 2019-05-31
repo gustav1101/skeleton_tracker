@@ -112,6 +112,7 @@ private:
     /** Output topic for skeletons */
     ros::Publisher skeleton_publisher_;
     ros::Publisher filtered_cloud_publisher_;
+    ros::Publisher negative_cloud_publisher_;
     
     std::string frame_id_;
     std::string skeleton_topic_name_;

@@ -76,6 +76,10 @@ void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_
     filtered_cloud_publisher_ = node_handle_.advertise<PointCloud>(
         "filtered_cloud",
         50);
+
+    negative_cloud_publisher_ = node_handle_.advertise<PointCloud>(
+        "negative_cloud",
+        20);
 }
 
 void SkeletonCreatorRosInteractor::make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud)
@@ -116,10 +120,11 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
     PointCloud filtered_cloud = *point_cloud;
     static_cloud_filter_.pass_filter(filtered_cloud);
     filtered_cloud_publisher_.publish(filtered_cloud);
-
+    negative_cloud_publisher_.publish(static_cloud_filter_.get_negative());
+    
     if ( no_pose_found(persons_msg) )
     {
-        ROS_WARN("Found Message with 0 Persons. Maybe resolution is set too low?");
+        // ROS_WARN("Found Message with 0 Persons. Maybe resolution is set too low?");
         return;
     }
     
