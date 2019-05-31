@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="scatter_step_distance" value="1" />
-  <arg name="scatter_steps" value="3" />
+  <arg name="scatter_steps" value="6" />
   <arg name="calibration_messages" value="10" />
   <arg name="resolution" value="368x368" />
   <arg name="xtion1_active" default="true" />
@@ -14,7 +14,6 @@
   
   <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" />
   
-
   <!-- ++++++++++++++++++++++++++ KINECT2 ON LOCAL DEVICE ++++++++++++++++++++++++++++++++ -->
   <group ns="kinect2" if="$(arg kinect2_active)" >
 
@@ -25,7 +24,7 @@
       <param name="resolution" value="$(arg resolution)" />
     </node>
 
-    <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" required="true"  launch-prefix="xterm -e gdb --args">
+    <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_creator" output="screen" required="true" >
       <param name="input_pose" type="str" value="pose_estimator/pose" />
       <param name="input_pointcloud" type="str" value="sd/points" />
       <param name="output_skeleton" type="str" value="/repository/skeleton_input" />
@@ -89,6 +88,7 @@
     <param name="masterlist_output" type="str" value="masterlist" />
     <param name="publish_interval" type="double" value="0.08" />
     <param name="global_frame_id" type="str" value="world" />
+    <param name="decay_strength" type="double" value="2.0" />
   </node>
 
   <node name="skeleton_visualiser" pkg="skeleton3d" type="skeleton_visualiser" output="screen" ns="repository" required="true" >
