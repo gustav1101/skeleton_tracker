@@ -4,7 +4,6 @@
 #include <ros/ros.h>
 #include "SkeletonRepository.hpp"
 #include <skeleton3d/Skeletons3d.h>
-#include "exceptions.hpp"
 
 /**
  * Ros Interactor for the Skeleton Repository.
@@ -75,7 +74,7 @@ private:
     message_filters::Subscriber<skeleton3d::Skeletons3d> skeleton_subscriber_;
     tf::TransformListener tf_listener_;
     tf::MessageFilter<skeleton3d::Skeletons3d> tf_message_filter_;
-    RepositoryTFTransformer skeleton_transformer_;
+    FrameTransformer skeleton_transformer_;
     const std::string global_frame_;
     
     /**

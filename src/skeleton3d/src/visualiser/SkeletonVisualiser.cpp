@@ -1,5 +1,4 @@
 #include "SkeletonVisualiser.hpp"
-#include "exceptions.hpp"
 #include <stdexcept>
 
 using Line = SkeletonVisualiser::Line;

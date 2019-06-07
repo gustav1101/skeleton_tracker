@@ -7,7 +7,7 @@
 #include <skeleton3d/Skeletons3d.h>
 #include <boost/optional.hpp>
 #include <ros/ros.h> // For time
-#include "RepositoryTFTransformer.hpp"
+#include "FrameTransformer.hpp"
 #include "RepositoryDataStructures.hpp"
 
 /**
@@ -77,6 +77,8 @@ public:
 
 
 private:
+    class NoCenterpointFoundError : public std::exception { };
+
     /** Tolerance until two skeletons are considered identical. */
     const double POSITION_TOLERANCE_;
     /** Strength multiplier with which information decay happens */

@@ -18,12 +18,12 @@ RepositoryRosInteractor::Params RepositoryRosInteractor::read_params()
     std::string input;
     if (!ros::param::get("~skeleton_input", input))
     {
-        throw skeleton_exceptions::LackingRosParameter("skeleton_input");
+        throw std::runtime_error("Missing Ros paramter: \"skeleton_input\"");
     };
     std::string output;
     if (!ros::param::get("~masterlist_output", output))
     {
-        throw skeleton_exceptions::LackingRosParameter("masterlist_output");
+        throw std::runtime_error("Missing Ros paramter: \"skeleton_input\"");
     };
     std::string global_frame_id;
     ros::param::param<std::string>("~global_frame_id", global_frame_id, "world");

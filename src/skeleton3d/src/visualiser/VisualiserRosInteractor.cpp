@@ -1,5 +1,4 @@
 #include "VisualiserRosInteractor.hpp"
-#include "exceptions.hpp"
 
 using Line = SkeletonVisualiser::Line;
 
@@ -76,7 +75,7 @@ std::string VisualiserRosInteractor::get_param(const std::string &param_name)
     if (!ros::param::get(param_name, param))
     {
         ROS_ERROR("Missing Node Parameter %s", param_name.c_str());
-        throw skeleton_exceptions::LackingRosParameter(param_name);
+        throw std::runtime_error(param_name);
     }
     return param;
 }
@@ -84,13 +83,6 @@ std::string VisualiserRosInteractor::get_param(const std::string &param_name)
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "skeleton_to_3d_vis");
-    try
-    {
-        VisualiserRosInteractor interactor;
-        ros::spin();
-    } catch (skeleton_exceptions::LackingRosParameter &e)
-    {
-        ROS_ERROR("Missing Node Parameter %s", e.get_info().c_str());
-        return 1;
-    }
+    VisualiserRosInteractor interactor;
+    ros::spin();
 }

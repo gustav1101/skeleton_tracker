@@ -11,7 +11,7 @@
 #include <message_filters/subscriber.h>
 #include "RepositoryDataStructures.hpp"
 
-class RepositoryTFTransformer {
+class FrameTransformer {
     using Skeletons = skeleton3d::Skeletons3d;
     using Skeleton = skeleton3d::Skeleton3d;
     using BodyPart = skeleton3d::BodyPart3d;
@@ -20,7 +20,7 @@ class RepositoryTFTransformer {
     using TimedBodyPart = repository_data_structures::TimedBodyPart;
 
 public:
-    RepositoryTFTransformer(const tf::TransformListener &tf_listener,
+    FrameTransformer(const tf::TransformListener &tf_listener,
                             std::string global_frame) : tf_listener_(tf_listener),
                                                         global_frame_(global_frame) {}
     

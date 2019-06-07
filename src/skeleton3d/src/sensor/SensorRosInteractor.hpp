@@ -28,7 +28,7 @@
  * number_of_messages_to_discard   | int    | 10       | Number of messages to discard upon initialisation before calibration starts
  * number_of_calibration_messages  | int    | 20       | Number of messages that will only be used to record the static background
  */
-class SkeletonCreatorRosInteractor
+class SensorRosInteractor
 {
     using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
     using ApproximateTimePolicy = message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
@@ -54,7 +54,7 @@ public:
      *
      * @param [in] params RosParams with all fields specified.
      */
-    SkeletonCreatorRosInteractor(const RosParams params) :
+    SensorRosInteractor(const RosParams params) :
         skeleton_creator_(
             params.scatter_step_distance,
             params.scatter_steps,
@@ -66,7 +66,7 @@ public:
             node_handle_.subscribe(
                 params.pointcloud_topic_name,
                 INPUT_QUEUE_SIZE_,
-                &SkeletonCreatorRosInteractor::calibrate_filter,
+                &SensorRosInteractor::calibrate_filter,
                 this)),
         tfpose_subscriber_(
             node_handle_,
@@ -84,7 +84,7 @@ public:
         skeleton_topic_name_(params.skeleton_topic_name)
     {}
     
-    ~SkeletonCreatorRosInteractor() {}
+    ~SensorRosInteractor() {}
 
     /**
      * Reads parameters given to this node.
@@ -123,7 +123,7 @@ private:
      * Retrieve one individual parameter from the ros node environment.
      *
      * @param [in] param_name Name of the parameter as given to the ros node.
-     * @throws skeleton_exceptions::LackingRosParameter when the parameter is not found in the node environment.
+     * @throws std::runtime_error when the parameter is not found in the node environment.
      */
     static std::string get_param(const std::string &param_name);
 

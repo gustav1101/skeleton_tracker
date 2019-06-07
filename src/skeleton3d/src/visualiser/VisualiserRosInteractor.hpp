@@ -82,7 +82,7 @@ private:
      *
      * @param param_name Name of the parameter as set in the node.
      * @return Value of the parameter requested.
-     * @throw skeleton_exceptions::LackingRosParameter If parameter has not been set.
+     * @throw std::runtime_error If parameter has not been set.
      */
     std::string get_param(const std::string &param_name);
 };

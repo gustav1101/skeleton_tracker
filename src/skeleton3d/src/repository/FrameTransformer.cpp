@@ -1,4 +1,4 @@
-#include "RepositoryTFTransformer.hpp"
+#include "FrameTransformer.hpp"
 
 using Skeleton = skeleton3d::Skeleton3d;
 using BodyPart = skeleton3d::BodyPart3d;
@@ -6,7 +6,7 @@ using Point = geometry_msgs::Point;
 using TimedSkeleton = repository_data_structures::TimedSkeleton;
 using TimedBodyPart = repository_data_structures::TimedBodyPart;
 
-std::vector<TimedSkeleton> RepositoryTFTransformer::transform_to_global_frame(const Skeletons::ConstPtr &skeletons_msg)
+std::vector<TimedSkeleton> FrameTransformer::transform_to_global_frame(const Skeletons::ConstPtr &skeletons_msg)
 {
     std::vector<TimedSkeleton> transformed_skeletons;
     for (const Skeleton &simple_skeleton : skeletons_msg->skeletons)
@@ -18,7 +18,7 @@ std::vector<TimedSkeleton> RepositoryTFTransformer::transform_to_global_frame(co
     return transformed_skeletons;
 }
 
-TimedSkeleton RepositoryTFTransformer::transform_to_global_frame(const Skeleton &skeleton,
+TimedSkeleton FrameTransformer::transform_to_global_frame(const Skeleton &skeleton,
                                                                  const std::string &source_frame,
                                                                  const ros::Time &time_stamp)
 {
@@ -32,7 +32,7 @@ TimedSkeleton RepositoryTFTransformer::transform_to_global_frame(const Skeleton 
     return timed_skeleton;
 }
 
-TimedBodyPart RepositoryTFTransformer::transform_to_global_frame(const BodyPart &body_part,
+TimedBodyPart FrameTransformer::transform_to_global_frame(const BodyPart &body_part,
                                                                  const std::string &source_frame,
                                                                  const ros::Time &time_stamp)
 {
@@ -45,7 +45,7 @@ TimedBodyPart RepositoryTFTransformer::transform_to_global_frame(const BodyPart 
     return transformed_body_part;
 }
 
-Point RepositoryTFTransformer::transform_to_global_frame(const Point &old_point,
+Point FrameTransformer::transform_to_global_frame(const Point &old_point,
                                                          const std::string &source_frame,
                                                          const ros::Time &time_stamp)
 {

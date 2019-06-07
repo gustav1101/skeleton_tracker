@@ -219,17 +219,17 @@ add_definitions(${PCL_DEFINITIONS})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(skeleton_creator src/SkeletonCreatorRosInteractor.cpp src/SkeletonCreator.cpp src/PointFinder.cpp src/StaticCloudFilter.cpp)
+add_executable(skeleton_creator src/sensor/SensorRosInteractor.cpp src/sensor/SkeletonCreator.cpp src/sensor/PointFinder.cpp src/sensor/StaticCloudFilter.cpp)
 target_link_libraries(skeleton_creator ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(skeleton_creator ${catkin_EXPORTED_TARGETS} skeleton3d_generate_messages_cpp)
 
-add_executable(skeleton_visualiser src/VisualiserRosInteractor.cpp src/SkeletonVisualiser.cpp)
-target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
-add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
-
-add_executable(skeleton_repository src/RepositoryRosInteractor.cpp src/SkeletonRepository.cpp src/RepositoryTFTransformer.cpp)
+add_executable(skeleton_repository src/repository/RepositoryRosInteractor.cpp src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp)
 target_link_libraries(skeleton_repository ${catkin_LIBRARIES})
 add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
+
+add_executable(skeleton_visualiser src/visualiser/VisualiserRosInteractor.cpp src/visualiser/SkeletonVisualiser.cpp)
+target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
+add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
 
 #############
 ## Doxygen ##

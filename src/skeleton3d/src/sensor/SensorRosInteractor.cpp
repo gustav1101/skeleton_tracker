@@ -1,6 +1,5 @@
-#include "SkeletonCreatorRosInteractor.hpp"
+#include "SensorRosInteractor.hpp"
 #include <skeleton3d/Skeletons3d.h>
-#include "exceptions.hpp"
 #include "FilterStatus.hpp"
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
@@ -8,7 +7,7 @@ using ApproximateTimePolicy =
     message_filters::sync_policies::ApproximateTime<tfpose_ros::Persons, PointCloud>;
 
 
-void SkeletonCreatorRosInteractor::generate_skeleton(
+void SensorRosInteractor::generate_skeleton(
     const tfpose_ros::Persons::ConstPtr &persons_msg,
     const PointCloud::ConstPtr &point_cloud)
 {
@@ -17,7 +16,7 @@ void SkeletonCreatorRosInteractor::generate_skeleton(
     process_persons_to_skeletons(persons_msg, point_cloud);
 }
 
-void SkeletonCreatorRosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons)
+void SensorRosInteractor::publish_skeletons(std::vector<skeleton3d::Skeleton3d> skeletons)
 {
     skeleton3d::Skeletons3d skeletons_msg;
     skeletons_msg.header.stamp = ros::Time::now();
@@ -27,7 +26,7 @@ void SkeletonCreatorRosInteractor::publish_skeletons(std::vector<skeleton3d::Ske
     skeleton_publisher_.publish(skeletons_msg);
 }
 
-SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_params()
+SensorRosInteractor::RosParams SensorRosInteractor::read_params()
 {
     std::string pose_topic_name = get_param("~input_pose");
     std::string pointcloud_topic_name = get_param("~input_pointcloud");
@@ -58,17 +57,17 @@ SkeletonCreatorRosInteractor::RosParams SkeletonCreatorRosInteractor::read_param
             .x_frame_offset = frame_offset};
 }
 
-std::string SkeletonCreatorRosInteractor::get_param(const std::string &param_name)
+std::string SensorRosInteractor::get_param(const std::string &param_name)
 {
     std::string param;
     if (!ros::param::get(param_name, param))
     {
-        throw skeleton_exceptions::LackingRosParameter(param_name);
+        throw std::runtime_error(param_name);
     }
     return param;
 }
 
-void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_topic_name)
+void SensorRosInteractor::create_publisher(const std::string &skeleton_topic_name)
 {
     skeleton_publisher_ = node_handle_.advertise<skeleton3d::Skeletons3d>(
         skeleton_topic_name,
@@ -82,7 +81,7 @@ void SkeletonCreatorRosInteractor::create_publisher(const std::string &skeleton_
         20);
 }
 
-void SkeletonCreatorRosInteractor::make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud)
+void SensorRosInteractor::make_sure_window_boundaries_set(const PointCloud::ConstPtr &point_cloud)
 {
     if (!window_boundaries_set_)
     {
@@ -91,12 +90,12 @@ void SkeletonCreatorRosInteractor::make_sure_window_boundaries_set(const PointCl
     }
 }
 
-bool SkeletonCreatorRosInteractor::no_pose_found(const tfpose_ros::Persons::ConstPtr &persons_msg)
+bool SensorRosInteractor::no_pose_found(const tfpose_ros::Persons::ConstPtr &persons_msg)
 {
     return (persons_msg->persons.size() == 0);
 }
 
-void SkeletonCreatorRosInteractor::calibrate_filter(const PointCloud::ConstPtr &point_cloud)
+void SensorRosInteractor::calibrate_filter(const PointCloud::ConstPtr &point_cloud)
 {
     static_cloud_filter_.calibrate_filter(point_cloud);
     if (static_cloud_filter_.get_filter_status() == pointcloud_filter_status::Status::ready)
@@ -105,15 +104,15 @@ void SkeletonCreatorRosInteractor::calibrate_filter(const PointCloud::ConstPtr &
     }
 }
 
-void SkeletonCreatorRosInteractor::switch_to_skeleton_generation()
+void SensorRosInteractor::switch_to_skeleton_generation()
 {
     pointcloud_subscriber_for_calibration_.shutdown();
     message_synchronizer_.registerCallback(
-        boost::bind(&SkeletonCreatorRosInteractor::generate_skeleton, this, _1, _2));
+        boost::bind(&SensorRosInteractor::generate_skeleton, this, _1, _2));
     create_publisher(skeleton_topic_name_);
 }
 
-void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
+void SensorRosInteractor::process_persons_to_skeletons(
     const tfpose_ros::Persons::ConstPtr &persons_msg,
     const PointCloud::ConstPtr point_cloud)
 {
@@ -137,13 +136,6 @@ void SkeletonCreatorRosInteractor::process_persons_to_skeletons(
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "skeleton_to_3d");
-    try
-    {
-        SkeletonCreatorRosInteractor interactor(SkeletonCreatorRosInteractor::read_params());
-        ros::spin();
-    } catch (skeleton_exceptions::LackingRosParameter &e)
-    {
-        ROS_ERROR("Missing Node Parameter %s", e.get_info().c_str());
-        return 1;
-    }
+    SensorRosInteractor interactor(SensorRosInteractor::read_params());
+    ros::spin();
 }
