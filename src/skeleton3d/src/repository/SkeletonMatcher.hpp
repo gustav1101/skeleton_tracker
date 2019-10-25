@@ -40,11 +40,13 @@ private:
     vector<TimedSkeleton> filter_for_unassoiciated_observations(
         vector<TimedSkeleton> observations,
         vector<vector<float>> distance_observation_to_track);
-    bool observation_is_far_from_tracks(TimedSkeleton observation);
-    void find_match(vector<vector<float>> distance_observation_to_track);
+    bool observation_is_far_from_tracks(const vector<float>& distances);
+    void find_match(vector<vector<float>>& distance_observation_to_track); // TODO: Impl
     void update_existing_tracks(
-        vector<TimedSkeleton> observations,
-        vector<vector<float>> assignment_matrix);
+        const vector<TimedSkeleton>& observations,
+        const vector<vector<float>>& assignment_matrix);
+    TimedSkeleton& find_matched_skeleton(const vector<float>& assignment_matrix);
+    void update_skeleton(const TimedSkeleton& observation, TimedSkeleton& track);
     void add_new_tracks(vector<TimedSkeleton> new_tracks);
     
     const float DISTANCE_THRESHOLD_;
