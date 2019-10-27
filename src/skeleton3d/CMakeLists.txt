@@ -223,7 +223,7 @@ add_executable(skeleton_creator src/sensor/SensorRosInteractor.cpp src/sensor/Sk
 target_link_libraries(skeleton_creator ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(skeleton_creator ${catkin_EXPORTED_TARGETS} skeleton3d_generate_messages_cpp)
 
-add_executable(skeleton_repository src/repository/RepositoryRosInteractor.cpp src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp)
+add_executable(skeleton_repository src/repository/RepositoryRosInteractor.cpp src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp src/repository/SkeletonMerger.cpp)
 target_link_libraries(skeleton_repository ${catkin_LIBRARIES})
 add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
 
