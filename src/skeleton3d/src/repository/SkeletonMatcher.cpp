@@ -10,20 +10,26 @@ template<class T> using vector = std::vector<T>;
 template<class T> using optional = boost::optional<T>;
 
 
-void SkeletonMatcher::update_tracks(
+std::vector<const TimedSkeleton * const> SkeletonMatcher::update_tracks_and_return_unmatched_observations(
     std::vector<TimedSkeleton> &tracks,
     const std::vector<TimedSkeleton> &_observation)
 {
-    vector<const TimedSkeleton *const> observation = create_pointer_vector(observation);
-    vector<vector<float>> distance_matrix =
-        create_distance_observation_to_track_matrix(observation);
+    // TODO: Early abort with error if observations is empty
 
-    vector<const TimedSkeleton * const> new_tracks = filter_for_unassoiciated_observations(
+    vector<const TimedSkeleton *const> observation = create_pointer_vector(_observation);
+    vector<vector<float>> distance_matrix =
+        create_distance_observation_to_track_matrix(observation, tracks);
+
+    vector<const TimedSkeleton * const> new_tracks = filter_too_isolated_observations(
         observation,
         distance_matrix);
 
-    process_observations_close_to_tracks(observation, distance_matrix);
-    add_new_tracks(new_tracks);
+    find_match_over_matrix(distance_matrix);
+
+    assign_tracks_to_observations(observation, tracks, distance_matrix);
+// TODO: Match skeletons
+    
+    return new_tracks;
 }
 
 vector<const TimedSkeleton *const> SkeletonMatcher::create_pointer_vector(
@@ -39,12 +45,13 @@ vector<const TimedSkeleton *const> SkeletonMatcher::create_pointer_vector(
 }
 
 vector<vector<float>> SkeletonMatcher::create_distance_observation_to_track_matrix(
-    const vector<const TimedSkeleton* const>& observation)
+    const vector<const TimedSkeleton * const>& observations,
+    const vector<TimedSkeleton>& tracks)
 {
     vector<vector<float>> distance_matrix =
-        prepare_empty_distance_matrix(tracks_->size(), observation.size());
+        prepare_empty_distance_matrix(tracks.size(), observations.size());
 
-    fill_matrix(distance_matrix, observation);
+    fill_matrix(observations, tracks, distance_matrix);
     
     return distance_matrix;
 }
@@ -61,15 +68,16 @@ vector<vector<float>> SkeletonMatcher::prepare_empty_distance_matrix(
 }
 
 void SkeletonMatcher::fill_matrix(
-    vector<vector<float> > &distance_matrix,
-    const vector<const TimedSkeleton * const>& observation)
+    const vector<const TimedSkeleton * const>& observation,
+    const vector<TimedSkeleton>& tracks,
+    vector<vector<float> > &distance_matrix)
 {
     for(int row=0; row < observation.size(); row++)
     {
-        for (int col=0; col<tracks_->size(); col++)
+        for (int col=0; col<tracks.size(); col++)
         {
             distance_matrix.at(row).at(col) = skeleton_distance(
-                tracks_->at(col),
+                tracks.at(col),
                 *observation.at(row));
         }
     }
@@ -95,7 +103,7 @@ float SkeletonMatcher::body_part_distance(const TimedBodyPart &bodypart1,
                 pow(bodypart1.body_part.point.z - bodypart2.body_part.point.z, 2));
 }
 
-vector<const TimedSkeleton * const> SkeletonMatcher::filter_for_unassoiciated_observations(
+vector<const TimedSkeleton * const> SkeletonMatcher::filter_too_isolated_observations(
     vector<const TimedSkeleton * const>& observations,
     const vector<vector<float>>& distance_observation_to_track)
 {
@@ -120,43 +128,38 @@ bool SkeletonMatcher::observation_is_far_from_tracks(const vector<float>& distan
     return is_far;
 }
 
-void SkeletonMatcher::match_tracks_against_observations(vector<vector<float>>& distance_observation_to_track)
+void SkeletonMatcher::find_match_over_matrix(vector<vector<float>>& distance_observation_to_track)
 {
     // TODO: Do hungarian here
 }
 
-void SkeletonMatcher::process_observations_close_to_tracks(
-    const vector<const TimedSkeleton * const>& observations,
-    const vector<vector<float>>& assignment_matrix)
+vector<optional<SkeletonMatcher::observation_track_match>> SkeletonMatcher::assign_tracks_to_observations(
+    vector<const TimedSkeleton *const>& observations,
+    vector<TimedSkeleton *const>& tracks,
+    vector<vector<float>>& distance_matrix)
 {
-    for (int i = 0; i < observations.size(); i++) {
-        process_observation_close_to_track(observations.at(i), assignment_matrix.at(i));
+    vector<optional<observation_track_match>> matches;
+    matches.reserve(std::max(observations.size(), tracks.size()));
+    for (int i = 0;  i < observations.size(); i++) {
+        matches.push_back(find_observation_track_pair(observations.at(i),
+                                                      tracks,
+                                                      distance_matrix.at(i)));
     }
+    return matches;
 }
 
-void SkeletonMatcher::process_observation_close_to_track(
-    const TimedSkeleton * const observation, const vector<float> &assignment_matrix_row)
+optional<SkeletonMatcher::observation_track_match> SkeletonMatcher::find_observation_track_pair(
+    const TimedSkeleton * const& observation,
+    vector<TimedSkeleton * const>& tracks,
+    vector<float>& assignment_matrix_row)
 {
-    optional<TimedSkeleton&> corresponding_track =
-        matched_skeleton(assignment_matrix_row);
-    if (corresponding_track)
+    auto matrix_row_iterator = std::find(assignment_matrix_row.begin(), assignment_matrix_row.end(), 1.0);
+    if( matrix_row_iterator != assignment_matrix_row.end() )
     {
-        update_existing_track(
-            observation,
-            *corresponding_track
-            );
-    } else
-    {
-        add_new_track(observation);
-    }
-}
-
-optional<TimedSkeleton&> SkeletonMatcher::matched_skeleton(const vector<float> &assignment_matrix)
-{
-    auto matrix_row_iterator = std::find(assignment_matrix.begin(), assignment_matrix.end(), 1.0);
-    if( matrix_row_iterator != assignment_matrix.end() )
-    {
-        return tracks_->at(matrix_row_iterator - assignment_matrix.begin());
+        return observation_track_match{
+            .observation = observation,
+                .track = tracks.at(matrix_row_iterator - assignment_matrix_row.begin())
+                };
     } else
     {
         return boost::none;
@@ -168,12 +171,3 @@ void SkeletonMatcher::update_existing_track(const TimedSkeleton * const observat
 {
     SkeletonMerger::merge_skeleton(observation, track);
 }
-
-void SkeletonMatcher::add_new_tracks(const vector<const TimedSkeleton * const> &new_tracks)
-{
-    for(const auto& new_track : new_tracks)
-    {
-        add_new_track(new_track);
-    }
-}
-
