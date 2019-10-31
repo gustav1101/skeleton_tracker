@@ -161,7 +161,6 @@ void SkeletonRepository::add_to_masterlist(const TimedSkeleton &new_skeleton)
 {
     skeletons_masterlist_.push_back(new_skeleton);
     skeletons_masterlist_.back().id = skeleton_id_++;
-    exclude_list_.push_back(&skeletons_masterlist_.back());
 }
 
 Skeleton SkeletonRepository::simple_skeleton_from(const TimedSkeleton &timed_skeleton)

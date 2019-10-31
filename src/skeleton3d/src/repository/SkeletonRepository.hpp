@@ -165,7 +165,7 @@ private:
      */
     bool should_update(const TimedBodyPart &new_timed_body_part,
                        const TimedBodyPart &existing_timed_body_part);
-    
+
     /*
      * Insert a new skeleton that has not yet been introduced into the masterlist.
      *
@@ -173,7 +173,7 @@ private:
      * @param timestamp The timestamp of the message the new_skeleton has been received in.
      */
     void add_to_masterlist(const TimedSkeleton &new_skeleton);
-
+    
     /**
      * Transform a TimedSkeleton into a normal Skeleton by ignoring body part timestamps.
      */
