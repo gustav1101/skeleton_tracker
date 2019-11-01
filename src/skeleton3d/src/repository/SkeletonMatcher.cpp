@@ -92,3 +92,17 @@ vector<const TimedSkeleton * const> SkeletonMatcher::update_or_return_new(
     }
     return new_tracks;
 }
+
+optional<TimedSkeleton&> SkeletonMatcher::find_corresponding_track(
+    vector<TimedSkeleton> &tracks,
+    const vector<bool> &assignment_matrix_row)
+{
+    auto elem = std::find(assignment_matrix_row.begin(), assignment_matrix_row.end(), true);
+    if(elem != assignment_matrix_row.end())
+    {
+        return tracks.at(elem - assignment_matrix_row.begin());
+    }
+    else {
+        return boost::none;
+    }
+}

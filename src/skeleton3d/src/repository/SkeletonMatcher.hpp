@@ -39,7 +39,7 @@ private:
         vector<TimedSkeleton>& tracks,
         const vector<vector<bool>>& assignment_matrix);
     optional<TimedSkeleton&> find_corresponding_track(
-        const vector<TimedSkeleton>& tracks,
+        vector<TimedSkeleton>& tracks,
         const vector<bool>& assignment_matrix_row);
     
     const float DISTANCE_THRESHOLD_;
