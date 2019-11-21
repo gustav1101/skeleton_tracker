@@ -19,23 +19,24 @@ public:
         DISTANCE_THRESHOLD_(distance_threshold),
         repository_(repository)
         {}
-    std::vector<const TimedSkeleton * const> update_tracks_and_return_unmatched_observations(
+
+    // Actually the observations are const as well, just can't denote that because:
+    // I'm working on pointers with the observation so I don't have to copy everything.
+    // I want to return the vector of observations that are not associated with any tracks.
+    // Since you can't create a vector of references I really need to work with pointers.
+    // Trouble is: You can't put anything const into a vector.
+    std::vector<TimedSkeleton *> update_tracks_and_return_unmatched_observations(
         std::vector<TimedSkeleton>& tracks,
-        const std::vector<TimedSkeleton>& observation);
+        std::vector<TimedSkeleton>& observation);
 
 private:
-    struct observation_track_match {
-        const TimedSkeleton * const observation;
-        TimedSkeleton& track;
-    };
-    
-    vector<const TimedSkeleton * const> create_pointer_vector(const vector<TimedSkeleton>& original);
-    vector<const TimedSkeleton * const> filter_too_isolated_observations(
-        vector<const TimedSkeleton * const>& observations,
+    vector<TimedSkeleton *> create_pointer_vector(vector<TimedSkeleton>& original);
+    vector<TimedSkeleton *> filter_too_isolated_observations(
+        vector<TimedSkeleton *>& observations,
         vector<vector<float>>& distance_observation_to_track);
     bool observation_is_far_from_tracks(const vector<float>& distances);
-    vector<const TimedSkeleton * const> update_or_return_new(
-        const vector<const TimedSkeleton * const>& observations,
+    vector<TimedSkeleton *> update_or_return_new(
+        const vector<TimedSkeleton *>& observations,
         vector<TimedSkeleton>& tracks,
         const vector<vector<bool>>& assignment_matrix);
     optional<TimedSkeleton&> find_corresponding_track(

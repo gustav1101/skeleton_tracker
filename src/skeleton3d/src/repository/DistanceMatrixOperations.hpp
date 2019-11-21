@@ -9,7 +9,7 @@ namespace DistanceMatrixOperations
     template<class T> using vector = std::vector<T>;
 
     vector<vector<float>> create_distance_observation_to_track_matrix(
-        const vector<const TimedSkeleton * const>& observations,
+        const vector<TimedSkeleton *>& observations,
         const vector<TimedSkeleton>& tracks);
     vector<vector<bool>> find_match_over_matrix(vector<vector<float>> distance_matrix); // TODO: Impl
 }

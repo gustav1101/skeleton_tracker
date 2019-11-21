@@ -142,9 +142,24 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/skeleton3d.cpp
-# )
+add_library(${PROJECT_NAME}-repository
+  src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp src/repository/SkeletonMerger.cpp src/repository/DistanceMatrixOperations.cpp
+)
+target_link_libraries(${PROJECT_NAME}-repository ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}-repository ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_library(${PROJECT_NAME}-sensor
+  src/sensor/SkeletonCreator.cpp src/sensor/PointFinder.cpp src/sensor/StaticCloudFilter.cpp
+  )
+target_link_libraries(${PROJECT_NAME}-sensor ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}-sensor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_library(${PROJECT_NAME}-visualiser
+  src/visualiser/SkeletonVisualiser.cpp
+  )
+target_link_libraries(${PROJECT_NAME}-visualiser ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}-visualiser ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -170,6 +185,19 @@ add_definitions(${PCL_DEFINITIONS})
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+
+add_executable(skeleton_sensor src/sensor/SensorRosInteractor.cpp)
+target_link_libraries(skeleton_sensor ${catkin_LIBRARIES} ${PROJECT_NAME}-sensor ${PCL_LIBRARIES})
+add_dependencies(skeleton_sensor ${catkin_EXPORTED_TARGETS} skeleton3d_generate_messages_cpp)
+
+add_executable(skeleton_repository src/repository/RepositoryRosInteractor.cpp)
+target_link_libraries(skeleton_repository ${catkin_LIBRARIES} ${PROJECT_NAME}-repository)
+add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
+
+add_executable(skeleton_visualiser src/visualiser/VisualiserRosInteractor.cpp)
+target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES} ${PROJECT_NAME}-visualiser)
+add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
+
 
 #############
 ## Install ##
@@ -211,25 +239,19 @@ add_definitions(${PCL_DEFINITIONS})
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_skeleton3d.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  catkin_add_gtest(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
+  target_link_libraries(${PROJECT_NAME}-repository-test ${catkin_LIBRARIES} ${PROJECT_NAME}-repository)
+  add_dependencies(${PROJECT_NAME}-repository-test ${catkin_EXPORTED_TARGETS} )#skeleton3d_generate_messages_cpp skeleton_repository)
+endif()
+  # catkin_add_gtest(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
+# if(TARGET ${PROJECT_NAME}-repository-test)
+#   target_link_libraries(${PROJECT_NAME}-repository-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-add_executable(skeleton_creator src/sensor/SensorRosInteractor.cpp src/sensor/SkeletonCreator.cpp src/sensor/PointFinder.cpp src/sensor/StaticCloudFilter.cpp)
-target_link_libraries(skeleton_creator ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-add_dependencies(skeleton_creator ${catkin_EXPORTED_TARGETS} skeleton3d_generate_messages_cpp)
-
-add_executable(skeleton_repository src/repository/RepositoryRosInteractor.cpp src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp src/repository/SkeletonMerger.cpp src/repository/DistanceMatrixOperations.cpp)
-target_link_libraries(skeleton_repository ${catkin_LIBRARIES})
-add_dependencies(skeleton_repository skeleton3d_generate_messages_cpp)
-
-add_executable(skeleton_visualiser src/visualiser/VisualiserRosInteractor.cpp src/visualiser/SkeletonVisualiser.cpp)
-target_link_libraries(skeleton_visualiser ${catkin_LIBRARIES})
-add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
 
 #############
 ## Doxygen ##
