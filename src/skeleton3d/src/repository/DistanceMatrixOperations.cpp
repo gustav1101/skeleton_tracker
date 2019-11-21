@@ -11,45 +11,45 @@ using TimedBodyPart = repository_data_structures::TimedBodyPart;
 template<class T> using vector = std::vector<T>;
 
 namespace DistanceMatrixOperations {
-    vector<vector<float>> prepare_empty_distance_matrix(
+    vector<vector<double>> prepare_empty_distance_matrix(
         int number_of_tracks,
         int number_of_observations);
     void fill_matrix(
         const vector<TimedSkeleton *>& observation,
         const vector<TimedSkeleton>& tracks,
-        vector<vector<float> > &distance_matrix);
-    float skeleton_distance(const TimedSkeleton& skeleton1,
+        vector<vector<double> > &distance_matrix);
+    double skeleton_distance(const TimedSkeleton& skeleton1,
                             const TimedSkeleton& skeleton2);
-    float body_part_distance(const TimedBodyPart& bodypart1,
+    double body_part_distance(const TimedBodyPart& bodypart1,
                              const TimedBodyPart& bodypart2);
-    vector<vector<bool>> create_assignment_matrix(const vector<vector<float>>& distance_matrix);
+    vector<vector<bool>> create_assignment_matrix(const vector<vector<double>>& distance_matrix);
     bool any_part_invalid(const TimedBodyPart& part1, const TimedBodyPart& part2);
 }
     
-vector<vector<float>> DistanceMatrixOperations::create_distance_observation_to_track_matrix(
+vector<vector<double>> DistanceMatrixOperations::create_distance_observation_to_track_matrix(
     const vector<TimedSkeleton *>& observations,
     const vector<TimedSkeleton>& tracks)
 {
-    vector<vector<float>> distance_matrix = prepare_empty_distance_matrix(tracks.size(), observations.size());
+    vector<vector<double>> distance_matrix = prepare_empty_distance_matrix(tracks.size(), observations.size());
 
     fill_matrix(observations, tracks, distance_matrix);
     
     return distance_matrix;
 }
 
-vector<vector<float>> DistanceMatrixOperations::prepare_empty_distance_matrix(
+vector<vector<double>> DistanceMatrixOperations::prepare_empty_distance_matrix(
     int number_of_tracks,
     int number_of_observations)
 {
-    vector<vector<float>> empty_matrix(
-        number_of_observations,vector<float>(number_of_tracks,0.0));
+    vector<vector<double>> empty_matrix(
+        number_of_observations,vector<double>(number_of_tracks,0.0));
     return empty_matrix;
 }
 
 void DistanceMatrixOperations::fill_matrix(
     const vector<TimedSkeleton *>& observation,
     const vector<TimedSkeleton>& tracks,
-    vector<vector<float> > &distance_matrix)
+    vector<vector<double> > &distance_matrix)
 {
     for(int row=0; row < observation.size(); row++)
     {
@@ -62,10 +62,10 @@ void DistanceMatrixOperations::fill_matrix(
     }
 }
 
-float DistanceMatrixOperations::skeleton_distance(const TimedSkeleton& skeleton1,
+double DistanceMatrixOperations::skeleton_distance(const TimedSkeleton& skeleton1,
                                                   const TimedSkeleton& skeleton2)
 {
-    float total_distance = 0.0;
+    double total_distance = 0.0;
     for(int i = 0; i<18; i++)
     {
         total_distance+=body_part_distance(skeleton1.timed_body_parts.at(i),
@@ -74,7 +74,7 @@ float DistanceMatrixOperations::skeleton_distance(const TimedSkeleton& skeleton1
     return total_distance;
 }
 
-float DistanceMatrixOperations::body_part_distance(const TimedBodyPart &bodypart1,
+double DistanceMatrixOperations::body_part_distance(const TimedBodyPart &bodypart1,
                                           const TimedBodyPart &bodypart2)
 {
     if (any_part_invalid(bodypart1, bodypart2))
@@ -94,14 +94,14 @@ bool DistanceMatrixOperations::any_part_invalid(const TimedBodyPart &part1, cons
     return (!part1.body_part.part_is_valid || !part2.body_part.part_is_valid);
 }
 
-vector<vector<bool>> DistanceMatrixOperations::find_match_over_matrix(vector<vector<float>> distance_matrix)
+vector<vector<bool>> DistanceMatrixOperations::find_match_over_matrix(vector<vector<double>> distance_matrix)
 {
     // TODO: Do hungarian here
 
     return create_assignment_matrix(distance_matrix);
 }
 
-vector<vector<bool>> DistanceMatrixOperations::create_assignment_matrix(const vector<vector<float>>& distance_matrix)
+vector<vector<bool>> DistanceMatrixOperations::create_assignment_matrix(const vector<vector<double>>& distance_matrix)
 {
     vector<vector<bool>> assignment_matrix(distance_matrix.size());
     for (auto& row : assignment_matrix) {

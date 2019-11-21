@@ -14,7 +14,7 @@ std::vector<TimedSkeleton *> SkeletonMatcher::update_tracks_and_return_unmatched
     // TODO: Early abort with error if observations is empty
 
     vector<TimedSkeleton *> observation = create_pointer_vector(_observation);
-    vector<vector<float>> distance_matrix =
+    vector<vector<double>> distance_matrix =
         DistanceMatrixOperations::create_distance_observation_to_track_matrix(
             observation,
             tracks);
@@ -48,7 +48,7 @@ vector<TimedSkeleton *> SkeletonMatcher::create_pointer_vector(
 
 vector<TimedSkeleton *> SkeletonMatcher::filter_too_isolated_observations(
     vector<TimedSkeleton *>& observations,
-    vector<vector<float>>& distance_observation_to_track)
+    vector<vector<double>>& distance_observation_to_track)
 {
     vector<TimedSkeleton *> new_tracks;
     for (int i = 0; i < observations.size(); ++i) {
@@ -62,7 +62,7 @@ vector<TimedSkeleton *> SkeletonMatcher::filter_too_isolated_observations(
     return new_tracks;
 }
 
-bool SkeletonMatcher::observation_is_far_from_tracks(const vector<float>& distances)
+bool SkeletonMatcher::observation_is_far_from_tracks(const vector<double>& distances)
 {
     bool is_far = true;
     for(auto& distance : distances)

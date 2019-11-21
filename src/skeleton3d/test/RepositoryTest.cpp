@@ -30,13 +30,13 @@ TEST(REPOSITORY, DISTANCE_CALCULATIONS)
         {.timed_body_parts = bodypart_track,
          .id = 0}};
     
-    vector<vector<float>> distance_matrix =
+    vector<vector<double>> distance_matrix =
         DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
     ASSERT_FALSE(bodypart_track.at(17).body_part.part_is_valid);
     ASSERT_EQ(distance_matrix.size(), 1); 
     ASSERT_EQ(distance_matrix.at(0).size(), 1);
 
-    ASSERT_FLOAT_EQ(distance_matrix.at(0).at(0), 293.09597404263334575551419520639812636241613094368806);
+    ASSERT_DOUBLE_EQ(distance_matrix.at(0).at(0), 293.09597404263334575551419520639812636241613094368806);
 }
 
 int main(int argc, char **argv){

@@ -15,7 +15,7 @@ class SkeletonMatcher {
     template<class T> using optional = boost::optional<T>;
     
 public:
-    SkeletonMatcher(float distance_threshold, SkeletonRepository& repository) :
+    SkeletonMatcher(double distance_threshold, SkeletonRepository& repository) :
         DISTANCE_THRESHOLD_(distance_threshold),
         repository_(repository)
         {}
@@ -33,8 +33,8 @@ private:
     vector<TimedSkeleton *> create_pointer_vector(vector<TimedSkeleton>& original);
     vector<TimedSkeleton *> filter_too_isolated_observations(
         vector<TimedSkeleton *>& observations,
-        vector<vector<float>>& distance_observation_to_track);
-    bool observation_is_far_from_tracks(const vector<float>& distances);
+        vector<vector<double>>& distance_observation_to_track);
+    bool observation_is_far_from_tracks(const vector<double>& distances);
     vector<TimedSkeleton *> update_or_return_new(
         const vector<TimedSkeleton *>& observations,
         vector<TimedSkeleton>& tracks,
@@ -43,7 +43,7 @@ private:
         vector<TimedSkeleton>& tracks,
         const vector<bool>& assignment_matrix_row);
     
-    const float DISTANCE_THRESHOLD_;
+    const double DISTANCE_THRESHOLD_;
     SkeletonRepository& repository_;
 };
 
