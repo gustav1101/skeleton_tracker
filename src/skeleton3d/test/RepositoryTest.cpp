@@ -14,15 +14,9 @@ SCENARIO("distances between multiple skeletons can be calculated in a matrix", "
     GIVEN("Two skeletons")
     {
         vector<TimedBodyPart> bodypart_observation = DummyDataCreator::create_body_part_list(
-            0.0,
-            0.0,
-            0.0,
-            18);
+            0.0, 0.0, 0.0, 18);
         vector<TimedBodyPart> bodypart_track = DummyDataCreator::create_body_part_list(
-            0.0,
-            5.0,
-            16.5,
-            17);
+            0.0, 5.0, 16.5, 17);
         TimedSkeleton observed_skeleton =
             {.timed_body_parts = bodypart_observation,
              .id = 0};
@@ -43,7 +37,28 @@ SCENARIO("distances between multiple skeletons can be calculated in a matrix", "
                 REQUIRE(distance_matrix.at(0).at(0) == Approx(293.09597404263334575551419520639812636241613094368806));
             }
         }
-        
-        
+
+        WHEN("A third skeleton is added")
+        {
+            vector<TimedBodyPart> second_observation_parts = DummyDataCreator::create_body_part_list(
+                -2.0, 0.0, 0.9, 14);
+            TimedSkeleton second_observed_skeleton =
+                {.timed_body_parts = second_observation_parts,
+                 .id = 0};
+            observation.push_back(&second_observed_skeleton);
+
+            THEN("The resulting distance matrix is correct in 2x1")
+            {
+                vector<vector<double>> distance_matrix =
+                    DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
+
+                REQUIRE(distance_matrix.size() == 2); 
+                REQUIRE_NOTHROW(distance_matrix.at(0).size(), 1);
+                REQUIRE_NOTHROW(distance_matrix.at(1).size(), 1);
+                REQUIRE(distance_matrix.at(0).at(0) == Approx(293.09597404263334575551419520639812636241613094368806));
+                REQUIRE(distance_matrix.at(1).at(0) == Approx(231.04666195381399623481003386277413146812025999217664));
+            }
+        }
     }
+    
 }
