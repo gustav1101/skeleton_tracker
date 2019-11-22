@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include <catch_ros/catch.hpp>
 #include "../src/repository/DistanceMatrixOperations.hpp"
 #include "../src/repository/RepositoryDataStructures.hpp"
 #include <ros/ros.h>
@@ -10,38 +10,40 @@ using TimedSkeleton = repository_data_structures::TimedSkeleton;
 using TimedBodyPart = repository_data_structures::TimedBodyPart;
 
 
-TEST(REPOSITORY, DISTANCE_CALCULATIONS)
-{
-    vector<TimedBodyPart> bodypart_observation = DummyDataCreator::create_body_part_list(
-        0.0,
-        0.0,
-        0.0,
-        18);
-    vector<TimedBodyPart> bodypart_track = DummyDataCreator::create_body_part_list(
-        0.0,
-        5.0,
-        16.5,
-        17);
-    TimedSkeleton observed_skeleton =
-        {.timed_body_parts = bodypart_observation,
-         .id = 0};
-    vector<TimedSkeleton*> observation = {&observed_skeleton};
-    vector<TimedSkeleton> track = {
-        {.timed_body_parts = bodypart_track,
-         .id = 0}};
-    
-    vector<vector<double>> distance_matrix =
-        DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
-    ASSERT_FALSE(bodypart_track.at(17).body_part.part_is_valid);
-    ASSERT_EQ(distance_matrix.size(), 1); 
-    ASSERT_EQ(distance_matrix.at(0).size(), 1);
+SCENARIO("distances between multiple skeletons can be calculated in a matrix", "[metric]") {
+    GIVEN("Two skeletons")
+    {
+        vector<TimedBodyPart> bodypart_observation = DummyDataCreator::create_body_part_list(
+            0.0,
+            0.0,
+            0.0,
+            18);
+        vector<TimedBodyPart> bodypart_track = DummyDataCreator::create_body_part_list(
+            0.0,
+            5.0,
+            16.5,
+            17);
+        TimedSkeleton observed_skeleton =
+            {.timed_body_parts = bodypart_observation,
+             .id = 0};
+        vector<TimedSkeleton*> observation = {&observed_skeleton};
+        vector<TimedSkeleton> track = {
+            {.timed_body_parts = bodypart_track,
+             .id = 0}};
 
-    ASSERT_DOUBLE_EQ(distance_matrix.at(0).at(0), 293.09597404263334575551419520639812636241613094368806);
-}
+        WHEN("the distance is calculated")
+        {
+            vector<vector<double>> distance_matrix =
+                DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
 
-int main(int argc, char **argv){
-    testing::InitGoogleTest(&argc, argv);
-    ros::init(argc, argv, "tester");
-    ros::NodeHandle nh;
-    return RUN_ALL_TESTS();
+            THEN("The size of the matrix is 1x1")
+            {
+                REQUIRE(distance_matrix.size() == 1); 
+                REQUIRE_NOTHROW(distance_matrix.at(0).size(), 1);
+                REQUIRE(distance_matrix.at(0).at(0) == Approx(293.09597404263334575551419520639812636241613094368806));
+            }
+        }
+        
+        
+    }
 }

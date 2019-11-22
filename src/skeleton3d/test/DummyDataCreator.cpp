@@ -41,6 +41,10 @@ vector<TimedBodyPart> DummyDataCreator::create_body_part_list(float x_offset,
                                                               float z_offset,
                                                               int number_of_valid_parts)
 {
+    if (!ros::isInitialized())
+    {
+        ros::Time::init();
+    }
     ros::Time now = ros::Time::now();
     vector<TimedBodyPart> all_timed_body_parts;
 

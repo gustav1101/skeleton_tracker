@@ -17,10 +17,11 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   tfpose_ros
   message_generation
-  genmsg
+  # genmsg
   pcl_ros
   image_transport
-)
+  catch_ros
+  )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -121,7 +122,7 @@ catkin_package(
 #  LIBRARIES skeleton3d
 CATKIN_DEPENDS message_runtime
 EXPORTED_TARGETS skeleton3d_generate_messages_cpp
-#  CATKIN_DEPENDS geometry_msgs/Point roscpp sensor_msgs/PointCloud2
+  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -159,7 +160,6 @@ add_library(${PROJECT_NAME}-visualiser
   )
 target_link_libraries(${PROJECT_NAME}-visualiser ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}-visualiser ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -240,10 +240,11 @@ add_dependencies(skeleton_visualiser skeleton3d_generate_messages_cpp)
 
 ## Add gtest based cpp test target and link libraries
 if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  catkin_add_gtest(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
+  # find_package(catkin REQUIRED COMPONENTS
+  #   catch_ros)
+  catch_add_test(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
   target_link_libraries(${PROJECT_NAME}-repository-test ${catkin_LIBRARIES} ${PROJECT_NAME}-repository)
-  add_dependencies(${PROJECT_NAME}-repository-test ${catkin_EXPORTED_TARGETS} )#skeleton3d_generate_messages_cpp skeleton_repository)
+  add_dependencies(${PROJECT_NAME}-repository-test ${catkin_EXPORTED_TARGETS} )
 endif()
   # catkin_add_gtest(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
 # if(TARGET ${PROJECT_NAME}-repository-test)
