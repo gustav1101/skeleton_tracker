@@ -10,3 +10,6 @@
 [submodule "src/ros-video-recorder"]
 	path = src/ros-video-recorder
 	url = git@github.com:ildoonet/ros-video-recorder.git
+[submodule "src/skeleton3d/src/external/munkres-cpp"]
+	path = src/skeleton3d/src/external/munkres-cpp
+	url = https://github.com/gustav1101/munkres-cpp

@@ -5,6 +5,7 @@
 #include <skeleton3d/BodyPart3d.h>
 #include <skeleton3d/Skeleton3d.h>
 #include <skeleton3d/Skeletons3d.h>
+#include "MunkresSolver.hpp"
 
 using TimedSkeleton = repository_data_structures::TimedSkeleton;
 using TimedBodyPart = repository_data_structures::TimedBodyPart;
@@ -96,7 +97,8 @@ bool DistanceMatrixOperations::any_part_invalid(const TimedBodyPart &part1, cons
 
 vector<vector<bool>> DistanceMatrixOperations::find_match_over_matrix(vector<vector<double>> distance_matrix)
 {
-    // TODO: Do hungarian here
+    MunkresSolver::solve_munkres(distance_matrix);
+// TODO: Do hungarian here
 
     return create_assignment_matrix(distance_matrix);
 }

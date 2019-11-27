@@ -136,6 +136,7 @@ EXPORTED_TARGETS skeleton3d_generate_messages_cpp
 ## Your package locations should be listed before other locations
 include_directories(
 # include
+  # src/external/munkres-cpp/src    # /munkres-cpp
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   )
@@ -144,7 +145,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}-repository
-  src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp src/repository/SkeletonMerger.cpp src/repository/DistanceMatrixOperations.cpp
+  src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp src/repository/SkeletonMerger.cpp src/repository/DistanceMatrixOperations.cpp src/repository/MunkresSolver.cpp
 )
 target_link_libraries(${PROJECT_NAME}-repository ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}-repository ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
