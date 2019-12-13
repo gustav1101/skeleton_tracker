@@ -14,17 +14,44 @@ namespace MunkresSolver
     void solve(Matrix& distance_matrix);
     void copy_results_to_vector_matrix(
         Matrix& source_matrix, vector<vector<double>>& vector_matrix);
+    bool is_actually_a_matrix(vector<vector<double>>& vector_matrix);
 }
 
 void MunkresSolver::solve_munkres(vector<vector<double>>& distance_matrix)
 {
+    if(!is_actually_a_matrix(distance_matrix))
+    {
+        throw std::invalid_argument("Distance matrix has unmatching number of columns");
+    }
     Matrix munkres_matrix = convert_to_munkres_matrix(distance_matrix);
     if (!check_validity(munkres_matrix))
     {
-        throw std::invalid_argument("Illegal distance matrix supplied to solver");
+        throw std::invalid_argument("Distance matrix holds negative values");
     }
     solve(munkres_matrix);
     copy_results_to_vector_matrix(munkres_matrix, distance_matrix);
+}
+
+bool MunkresSolver::is_actually_a_matrix(vector<vector<double>> &vector_matrix)
+{
+    int first_row_size = vector_matrix.size();
+    if( first_row_size == 0)
+    {
+        return false;
+    }
+    if( first_row_size == 1)
+    {
+        return true;
+    }
+    int number_of_columns = vector_matrix.at(0).size();
+    for(int row = 1; row < vector_matrix.size(); row++)
+    {
+        if( number_of_columns != vector_matrix.at(row).size() )
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool MunkresSolver::check_validity(Matrix& distance_matrix)

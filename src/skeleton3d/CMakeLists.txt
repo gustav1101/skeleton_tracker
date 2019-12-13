@@ -246,11 +246,11 @@ if(CATKIN_ENABLE_TESTING)
   catch_add_test(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
   target_link_libraries(${PROJECT_NAME}-repository-test ${catkin_LIBRARIES} ${PROJECT_NAME}-repository)
   add_dependencies(${PROJECT_NAME}-repository-test ${catkin_EXPORTED_TARGETS} )
+
+  catch_add_test(${PROJECT_NAME}-glutton_munkres-test test/GluttonHungarianTest.cpp)
+  target_link_libraries(${PROJECT_NAME}-glutton_munkres-test ${catkin_LIBRARIES} ${PROJECT_NAME}-repository)
+  add_dependencies(${PROJECT_NAME}-glutton_munkres-test ${catkin_EXPORTED_TARGETS} )
 endif()
-  # catkin_add_gtest(${PROJECT_NAME}-repository-test test/RepositoryTest.cpp test/DummyDataCreator.cpp)
-# if(TARGET ${PROJECT_NAME}-repository-test)
-#   target_link_libraries(${PROJECT_NAME}-repository-test ${PROJECT_NAME})
-# endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <skeleton3d/BodyPart3d.h>
 #include "DummyDataCreator.hpp"
+#include "../src/repository/MunkresSolver.hpp"
 
 template<class T> using vector = std::vector<T>;
 using TimedSkeleton = repository_data_structures::TimedSkeleton;
@@ -30,7 +31,7 @@ SCENARIO("distances between multiple skeletons can be calculated in a matrix", "
             vector<vector<double>> distance_matrix =
                 DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
 
-            THEN("The size of the matrix is 1x1")
+            THEN("The size of the matrix is 1x1 and correct")
             {
                 REQUIRE(distance_matrix.size() == 1); 
                 REQUIRE_NOTHROW(distance_matrix.at(0).size(), 1);
@@ -47,11 +48,11 @@ SCENARIO("distances between multiple skeletons can be calculated in a matrix", "
                  .id = 0};
             observation.push_back(&second_observed_skeleton);
 
+            vector<vector<double>> distance_matrix =
+                DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
+
             THEN("The resulting distance matrix is correct in 2x1")
             {
-                vector<vector<double>> distance_matrix =
-                    DistanceMatrixOperations::create_distance_observation_to_track_matrix(observation, track);
-
                 REQUIRE(distance_matrix.size() == 2); 
                 REQUIRE_NOTHROW(distance_matrix.at(0).size(), 1);
                 REQUIRE_NOTHROW(distance_matrix.at(1).size(), 1);
@@ -60,5 +61,5 @@ SCENARIO("distances between multiple skeletons can be calculated in a matrix", "
             }
         }
     }
-    
+
 }

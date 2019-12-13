@@ -98,8 +98,6 @@ bool DistanceMatrixOperations::any_part_invalid(const TimedBodyPart &part1, cons
 vector<vector<bool>> DistanceMatrixOperations::find_match_over_matrix(vector<vector<double>> distance_matrix)
 {
     MunkresSolver::solve_munkres(distance_matrix);
-// TODO: Do hungarian here
-
     return create_assignment_matrix(distance_matrix);
 }
 
