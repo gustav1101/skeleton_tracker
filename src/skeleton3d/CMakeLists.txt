@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   tfpose_ros
   message_generation
-  # genmsg
   pcl_ros
   image_transport
   catch_ros
@@ -145,7 +144,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}-repository
-  src/repository/SkeletonRepository.cpp src/repository/FrameTransformer.cpp src/repository/SkeletonMatcher.cpp src/repository/SkeletonMerger.cpp src/repository/DistanceMatrixOperations.cpp src/repository/MunkresSolver.cpp
+  src/repository/FrameTransformer.cpp src/repository/SkeletonRepository.cpp src/repository/SkeletonMatcher.cpp src/repository/DistanceMatrixOperations.cpp src/repository/MunkresSolver.cpp src/repository/SkeletonMerger.cpp
 )
 target_link_libraries(${PROJECT_NAME}-repository ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}-repository ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

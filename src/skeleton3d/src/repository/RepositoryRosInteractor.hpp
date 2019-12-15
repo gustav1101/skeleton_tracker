@@ -2,9 +2,13 @@
 #define REPOSITORYROSINTERACTOR_HPP
 
 #include <ros/ros.h>
-#include "SkeletonRepository.hpp"
 #include <skeleton3d/Skeletons3d.h>
+#include <tf/transform_listener.h>
+#include <tf/message_filter.h>
+#include <message_filters/subscriber.h>
 
+#include "SkeletonRepository.hpp"
+#include "FrameTransformer.hpp"
 /**
  * Ros Interactor for the Skeleton Repository.
  *

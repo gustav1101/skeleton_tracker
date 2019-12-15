@@ -1,23 +1,18 @@
 #ifndef SKELETONMATCHER_HPP
 #define SKELETONMATCHER_HPP
 
-// #include <geometry_msgs/Point.h>
-// #include <skeleton3d/BodyPart3d.h>
-// #include <skeleton3d/Skeleton3d.h>
-// #include <skeleton3d/Skeletons3d.h>
 #include "RepositoryDataStructures.hpp"
 #include <boost/optional.hpp>
-#include "SkeletonRepository.hpp"
 
-class SkeletonMatcher {
+class SkeletonMatcher
+{
     using TimedSkeleton = repository_data_structures::TimedSkeleton;
     template<class T> using vector = std::vector<T>;
     template<class T> using optional = boost::optional<T>;
     
 public:
-    SkeletonMatcher(double distance_threshold, SkeletonRepository& repository) :
-        DISTANCE_THRESHOLD_(distance_threshold),
-        repository_(repository)
+    SkeletonMatcher(double distance_threshold) :
+        DISTANCE_THRESHOLD_(distance_threshold)
         {}
 
     // Actually the observations are const as well, just can't denote that because:
@@ -44,7 +39,6 @@ private:
         const vector<bool>& assignment_matrix_row);
     
     const double DISTANCE_THRESHOLD_;
-    SkeletonRepository& repository_;
 };
 
 #endif

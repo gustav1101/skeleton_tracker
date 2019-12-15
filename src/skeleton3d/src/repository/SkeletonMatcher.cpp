@@ -11,7 +11,11 @@ std::vector<TimedSkeleton *> SkeletonMatcher::update_tracks_and_return_unmatched
     std::vector<TimedSkeleton> &tracks,
     std::vector<TimedSkeleton> &_observation)
 {
-    // TODO: Early abort with error if observations is empty
+    // TODO: Make this more beautiful / unecessary
+    if(_observation.size() == 0)
+    {
+        return vector<TimedSkeleton*>();
+    }
 
     vector<TimedSkeleton *> observation = create_pointer_vector(_observation);
     vector<vector<double>> distance_matrix =
@@ -22,6 +26,11 @@ std::vector<TimedSkeleton *> SkeletonMatcher::update_tracks_and_return_unmatched
     vector<TimedSkeleton *> new_tracks = filter_too_isolated_observations(
         observation,
         distance_matrix);
+    
+    if(observation.size() == 0)
+    {
+        return vector<TimedSkeleton*>();
+    }
 
     vector<vector<bool>> assignment_matrix =
         DistanceMatrixOperations::find_match_over_matrix(distance_matrix);

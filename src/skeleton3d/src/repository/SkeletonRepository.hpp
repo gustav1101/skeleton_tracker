@@ -1,14 +1,9 @@
 #ifndef SKELETONREPOSITORY_HPP
 #define SKELETONREPOSITORY_HPP
 
-#include <geometry_msgs/Point.h>
-#include <skeleton3d/BodyPart3d.h>
 #include <skeleton3d/Skeleton3d.h>
-#include <skeleton3d/Skeletons3d.h>
-#include <boost/optional.hpp>
-#include <ros/ros.h> // For time
-#include "FrameTransformer.hpp"
 #include "RepositoryDataStructures.hpp"
+#include "SkeletonMatcher.hpp"
 
 /**
  * Repository of Skeleton Information collected from all sensors.
@@ -32,10 +27,8 @@
  * can be set by changing the decay_strength parameter in the constructor.
  */
 class SkeletonRepository {
-    using BodyPart = skeleton3d::BodyPart3d;
     using Skeleton = skeleton3d::Skeleton3d;
-    using Point = geometry_msgs::Point;
-    template<class T> using optional = boost::optional<T>;
+    template<class T> using vector = std::vector<T>;
     using TimedBodyPart = repository_data_structures::TimedBodyPart;
     using TimedSkeleton = repository_data_structures::TimedSkeleton;
     
@@ -43,16 +36,15 @@ public:
     /**
      * Constructor.
      *
-     * @param position_tolerance Minimum distance in m, but using taxicap metric, between to
-     *                           recognised skeletons before they are merged into one.
      * @param decay_strength Higher strength shortens time before skeleton parts start to
      *                       disapper if no new message about them has been received. Setting
      *                       this to 0.0 disables aging.
      */
-    SkeletonRepository(double position_tolerance, double decay_strength) :
-        POSITION_TOLERANCE_(position_tolerance),
+    SkeletonRepository(double distance_threshold, double decay_strength) :
         DECAY_STRENGTH_(decay_strength),
-        skeleton_id_(0) {}
+        skeleton_id_(0),
+        skeleton_matcher_(distance_threshold)
+    {}
     ~SkeletonRepository() {};
     
     /**
@@ -63,7 +55,7 @@ public:
      *
      * @param skeletons_msg Message with new skeleton information.
      */
-    void update_skeletons(const std::vector<TimedSkeleton> &timed_skeletons);
+    void update_skeletons(std::vector<TimedSkeleton> &observed_skeletons);
 
     /**
      * Retrieve all current information from this repository.
@@ -79,93 +71,15 @@ public:
 private:
     class NoCenterpointFoundError : public std::exception { };
 
-    /** Tolerance until two skeletons are considered identical. */
-    const double POSITION_TOLERANCE_;
     /** Strength multiplier with which information decay happens */
     const double DECAY_STRENGTH_;
     /** Masterlist holding all current skeletons */
     std::vector<TimedSkeleton> skeletons_masterlist_;
-    std::vector<TimedSkeleton*> exclude_list_;
     unsigned int skeleton_id_;
-       
-    /*
-     * Try to find given skeleton in the masterlist.
-     *
-     * Searches the repository for a skeleton that is close enough to new_skeleton to be
-     * considered the same.
-     *
-     * @param new_skeleton A reference to the existing skeleton if one exists, boost::none else.
-     */
-    optional<TimedSkeleton&> find_skeleton_in_list(const TimedSkeleton &new_skeleton);
-
-    /**
-     * Decide whether or not a skeleton is identical to another.
-     *
-     * This is decided based on their distance to each other. Distance is measured in meters,
-     * but calculated using the taxicap metric instead of euclidian distance. This improves
-     * speed and since the value this is compared to is best selected by try and error anyway,
-     * the euclidian distance would not help here.
-     *
-     * @param skel1 One skeleton
-     * @param skel2 Another skeleton
-     * @return true iff both skeletons are considered identical
-     */
-    bool is_same_skeleton(const TimedSkeleton &skel1, const TimedSkeleton &skel2);
-
-    bool from_same_message(const TimedSkeleton &skeleton);
-    /**
-     * Calculate center of skeleton.
-     *
-     * Current calculation only uses Center head point and center torso point (part ids 0 and 1)
-     * to avoid the center point rapidly changing when a person starts leaving the camera angle.
-     * At least one of those two positions is recognised by the model anyway.
-     *
-     * @param body_parts List of all parts that may be used in calculating center position.
-     * @return Center position of corresponding skeleton.
-     */
-    Point get_skeleton_center_position(const std::vector<TimedBodyPart> &body_parts);
-
-    /**
-     * Get mean position of given body parts.
-     *
-     * @param body_parts All body parts to calculate average position of.
-     * @return The mean position of all body_parts.
-     */
-    Point calculate_mean_position(const std::vector<const TimedBodyPart*> body_parts);
-
-    /**
-     * Calculate taxicap distance between the two given points. See
-     * https://en.wikipedia.org/wiki/Taxicab_geometry for details.
-     */
-    double distance_between_points(const Point &point1, const Point &point2);
-
-    /**
-     * Merge the new skeleton into the one already in the masterlist.
-     *
-     * Whether or not to update the existing skeleton is decided individually per body part.
-     * This is to make sure that if one camera has a good angle on a certain body part (and thus
-     * hopefully high confidence in it's position) but not on some others then the low confidence
-     * body parts will be overwritten by ones with higher confidence.
-     *
-     * @param new_skeleton The new skeleton that is considered an update to one already in the
-     *                     masterlist.
-     * @param existing_skeleton The existing skeleton that the new skeleton should be merged
-     *                          into.
-     * @param timestamp Timestamp of the message the new_skeleton has been received in.
-     *
-     */
-    void merge_skeleton(const TimedSkeleton &new_skeleton,
-                        TimedSkeleton &exisiting_skeleton);
-
-    /**
-     * Decide whether or not to update a body part.
-     *
-     * Invalid body parts will always be overwritten with valid ones. Invalid parts never
-     * overwrite anything. Other than that, only confidence influences the decision.
-     */
-    bool should_update(const TimedBodyPart &new_timed_body_part,
-                       const TimedBodyPart &existing_timed_body_part);
-
+    SkeletonMatcher skeleton_matcher_;
+    
+    void add_to_masterlist(const vector<TimedSkeleton*>& new_tracks);
+    
     /*
      * Insert a new skeleton that has not yet been introduced into the masterlist.
      *
