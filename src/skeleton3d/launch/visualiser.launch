@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="skeleton_visualiser" pkg="skeleton3d" type="skeleton_visualiser" output="screen" ns="repository" required="true" >
+    <param name="input_skeleton" type="str" value="masterlist" />
+    <param name = "output_marker" type="str" value="skeleton_vis" />
+    <param name="frame_id" type="str" value="world" />
+  </node>
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find skeleton3d)/rviz/live_multicam.rviz" />
+</launch>
