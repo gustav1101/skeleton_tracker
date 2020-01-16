@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen" ns="repository" required="true" launch-prefix="xterm -e gdb --args" >
+  <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen" ns="repository" required="true" >
+    <!-- launch-prefix="xterm -e gdb -\-args" -->
     <param name="position_tolerance" type="double" value="1.2" />
     <param name="skeleton_input" type="str" value="skeleton_input" />
     <param name="masterlist_output" type="str" value="masterlist" />

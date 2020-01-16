@@ -1,18 +1,21 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="scatter_step_distance" value="1" />
-  <arg name="scatter_steps" value="6" />
-  <arg name="calibration_messages" value="10" />
-  <arg name="resolution" value="368x368" />
+  <arg name="scatter_step_distance" default="1" />
+  <arg name="scatter_steps" default="6" />
+  <arg name="calibration_messages" default="10" />
+  <arg name="resolution" default="368x368" />
   <arg name="xtion1_active" default="false" />
   <arg name="xtion2_active" default="true" />
   <arg name="kinect2_active" default="true" />
+  <arg name="rosbag_path" default="" />
 
-
+  <!-- automatically set parameters, do not touch -->
+  <arg name="source_is_rosbag" value="$(eval arg('rosbag_path') != '')" />
 
   <!-- ++++++++++++++++++++++++++ LAUNCH CAMERAS +++++++++++++++++++++++++++++++++++++++++ -->
   
-  <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" />
+  <include file="$(find sensorlab_launch)/launch/sensorlab_startup.launch" unless="$(arg source_is_rosbag)"/>
+  <node if="$(arg source_is_rosbag)" pkg="rosbag" type="play" name="rosbag_player" args="--loop --quiet $(arg rosbag_path)" />
   
   <!-- ++++++++++++++++++++++++++ KINECT2 ON LOCAL DEVICE ++++++++++++++++++++++++++++++++ -->
   <include if="$(arg kinect2_active)" file="$(find skeleton3d)/launch/kinect_estimator.launch">
