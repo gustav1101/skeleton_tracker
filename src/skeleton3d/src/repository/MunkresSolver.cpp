@@ -24,10 +24,6 @@ void MunkresSolver::solve_munkres(vector<vector<double>>& distance_matrix)
         throw std::invalid_argument("Distance matrix has unmatching number of columns");
     }
     Matrix munkres_matrix = convert_to_munkres_matrix(distance_matrix);
-    if (!check_validity(munkres_matrix))
-    {
-        throw std::invalid_argument("Distance matrix holds negative values");
-    }
     solve(munkres_matrix);
     copy_results_to_vector_matrix(munkres_matrix, distance_matrix);
 }
@@ -52,11 +48,6 @@ bool MunkresSolver::is_actually_a_matrix(vector<vector<double>> &vector_matrix)
         }
     }
     return true;
-}
-
-bool MunkresSolver::check_validity(Matrix& distance_matrix)
-{
-    return munkres_cpp::is_data_valid(distance_matrix);
 }
 
 Matrix MunkresSolver::convert_to_munkres_matrix(vector<vector<double>>& distance_matrix)
