@@ -4,6 +4,7 @@
   <arg name="scatter_step_distance" />
   <arg name="scatter_steps" />
   <arg name="calibration_messages" />
+  <arg name="xtion1_debug_estimator" />
 
   <group ns="xtion1">
     <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true">
@@ -22,6 +23,11 @@
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
       <param name="frame_id" type="str" value="xtion1_depth_optical_frame" />
       <param name="number_of_calibration_messages" type="int" value="$(arg calibration_messages)" />
+    </node>
+
+    <node name="pose_estimator_vis" pkg="tfpose_ros" type="visualization.py" output="screen" required="true" if="$(arg xtion1_debug_estimator)">
+      <param name="camera" value="rgb/image_rect_color" />
+      <param name="pose" value="pose_estimator/pose" />
     </node>
   </group>
 </launch>

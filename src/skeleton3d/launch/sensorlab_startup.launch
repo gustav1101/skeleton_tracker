@@ -5,8 +5,11 @@
   <arg name="calibration_messages" default="10" />
   <arg name="resolution" default="368x368" />
   <arg name="xtion1_active" default="false" />
-  <arg name="xtion2_active" default="true" />
+  <arg name="xtion1_debug_estimator" default="false" />
+  <arg name="xtion2_active" default="false" />
+  <arg name="xtion2_debug_estimator" default="false" />
   <arg name="kinect2_active" default="true" />
+  <arg name="kinect2_debug_estimator" default="false" />
   <arg name="rosbag_path" default="" />
 
   <!-- automatically set parameters, do not touch -->
@@ -18,34 +21,37 @@
   <node if="$(arg source_is_rosbag)" pkg="rosbag" type="play" name="rosbag_player" args="--loop --quiet $(arg rosbag_path)" />
   
   <!-- ++++++++++++++++++++++++++ KINECT2 ON LOCAL DEVICE ++++++++++++++++++++++++++++++++ -->
-  <include if="$(arg kinect2_active)" file="$(find skeleton3d)/launch/kinect_estimator.launch">
+  <include if="$(arg kinect2_active)" file="$(find skeleton3d)/launch/include/kinect_estimator.launch.xml">
     <arg name="resolution" value="$(arg resolution)" />
     <arg name="scatter_step_distance" value="$(arg scatter_step_distance)" />
     <arg name="scatter_steps" value="$(arg scatter_steps)" />
     <arg name="calibration_messages" value="$(arg calibration_messages)" />
+    <arg name="kinect2_debug_estimator" value="$(arg kinect2_debug_estimator)" />
   </include>
   
   <!-- ++++++++++++++++++++++++++ XTION1 ON ODROID1 ++++++++++++++++++++++++++++++++++++++ -->
-  <include if="$(arg xtion1_active)" file="$(find skeleton3d)/launch/xtion1_estimator.launch">
+  <include if="$(arg xtion1_active)" file="$(find skeleton3d)/launch/include/xtion1_estimator.launch.xml">
     <arg name="resolution" value="$(arg resolution)" />
     <arg name="scatter_step_distance" value="$(arg scatter_step_distance)" />
     <arg name="scatter_steps" value="$(arg scatter_steps)" />
     <arg name="calibration_messages" value="$(arg calibration_messages)" />
+    <arg name="xtion1_debug_estimator" value="$(arg xtion1_debug_estimator)" />
   </include>
 
   <!-- ++++++++++++++++++++++++++ XTION2 ON ODROID2 ++++++++++++++++++++++++++++++++++++++ -->
-  <include if="$(arg xtion1_active)" file="$(find skeleton3d)/launch/xtion1_estimator.launch">
+  <include if="$(arg xtion1_active)" file="$(find skeleton3d)/launch/include/xtion1_estimator.launch.xml">
     <arg name="resolution" value="$(arg resolution)" />
     <arg name="scatter_step_distance" value="$(arg scatter_step_distance)" />
     <arg name="scatter_steps" value="$(arg scatter_steps)" />
     <arg name="calibration_messages" value="$(arg calibration_messages)" />
+    <arg name="xtion2_debug_estimator" value="$(arg xtion2_debug_estimator)" />
   </include>
 
   <!-- +++++++++++++++++++ REPOSITORY AND CENTRAL INFRASTRUCTURE +++++++++++++++++++++++++ -->
-  <include file="$(find skeleton3d)/launch/repository.launch">    
+  <include file="$(find skeleton3d)/launch/include/repository.launch.xml">    
   </include>
 
-  <include file="$(find skeleton3d)/launch/visualiser.launch">
+  <include file="$(find skeleton3d)/launch/include/visualiser.launch.xml">
   </include>
     
 </launch>
