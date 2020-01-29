@@ -40,7 +40,7 @@ void SkeletonMerger::merge_body_part(
 bool SkeletonMerger::should_merge(const TimedBodyPart &old_part, const TimedBodyPart &new_part)
 {
     // Yes, this function could be reduced to one line. No, that wouldn't help readability.
-    if( part_is_valid(old_part) )
+    if( part_is_valid(new_part) )
     {
         if( new_part_has_higher_confidence(old_part, new_part) ||
             !part_is_valid(old_part))

@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="decay_strength" />
+  <arg name="position_tolerance"/>
+  <arg name="source_is_rosbag"/>
+  
   <node name="skeleton_repository" pkg="skeleton3d" type="skeleton_repository" output="screen" ns="repository" required="true" >
     <!-- launch-prefix="xterm -e gdb -\-args" -->
-    <param name="position_tolerance" type="double" value="1.2" />
+    <param name="position_tolerance" type="double" value="$(arg position_tolerance)" />
     <param name="skeleton_input" type="str" value="skeleton_input" />
     <param name="masterlist_output" type="str" value="masterlist" />
     <param name="publish_interval" type="double" value="0.08" />
     <param name="global_frame_id" type="str" value="world" />
-    <param name="decay_strength" type="double" value="2.0" />
+    <param name="decay_strength" type="double" value="$(arg decay_strength)" />
+    <param name ="/use_sim_time" value="true" if="$(arg source_is_rosbag)"/>
   </node>
 </launch>

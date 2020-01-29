@@ -5,6 +5,7 @@
   <arg name="scatter_steps" />
   <arg name="calibration_messages" />
   <arg name="xtion1_debug_estimator" />
+  <arg name="source_is_rosbag" />
 
   <group ns="xtion1">
     <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true">
@@ -12,6 +13,7 @@
       <param name="camera" value="rgb/image_rect_color" />
       <param name="model" value="mobilenet_thin" />
       <param name="resolution" value="$(arg resolution)" />
+      <param name ="/use_sim_time" value="true" if="$(arg source_is_rosbag)"/>
     </node>
 
     <node name="skeleton_to_3d" pkg="skeleton3d" type="skeleton_sensor" output="screen" required="true">
@@ -23,11 +25,13 @@
       <param name="scatter_steps" type="int" value="$(arg scatter_steps)" />
       <param name="frame_id" type="str" value="xtion1_depth_optical_frame" />
       <param name="number_of_calibration_messages" type="int" value="$(arg calibration_messages)" />
+      <param name ="/use_sim_time" value="true" if="$(arg source_is_rosbag)"/>
     </node>
 
     <node name="pose_estimator_vis" pkg="tfpose_ros" type="visualization.py" output="screen" required="true" if="$(arg xtion1_debug_estimator)">
       <param name="camera" value="rgb/image_rect_color" />
       <param name="pose" value="pose_estimator/pose" />
+      <param name ="/use_sim_time" value="true" if="$(arg source_is_rosbag)"/>
     </node>
   </group>
 </launch>
