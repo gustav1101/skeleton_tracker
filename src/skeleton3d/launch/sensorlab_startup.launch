@@ -2,11 +2,11 @@
 <launch>
   <arg name="scatter_step_distance" default="1" />
   <arg name="scatter_steps" default="6" />
-  <arg name="decay_strength" default = "0.16" />
-  <arg name="position_tolerance" default= "200" />
+  <arg name="decay_strength" default = "0.08" />
+  <arg name="position_tolerance" default= "20" />
   <arg name="calibration_messages" default="10" />
   <arg name="resolution" default="368x368" />
-  <arg name="xtion1_active" default="true" />
+  <arg name="xtion1_active" default="false" />
   <arg name="xtion1_debug_estimator" default="false" />
   <arg name="xtion2_active" default="false" />
   <arg name="xtion2_debug_estimator" default="false" />
@@ -43,7 +43,7 @@
   </include>
 
   <!-- ++++++++++++++++++++++++++ XTION2 ON ODROID2 ++++++++++++++++++++++++++++++++++++++ -->
-  <include if="$(arg xtion2_active)" file="$(find skeleton3d)/launch/include/xtion1_estimator.launch.xml">
+  <include if="$(arg xtion2_active)" file="$(find skeleton3d)/launch/include/xtion2_estimator.launch.xml">
     <arg name="resolution" value="$(arg resolution)" />
     <arg name="scatter_step_distance" value="$(arg scatter_step_distance)" />
     <arg name="scatter_steps" value="$(arg scatter_steps)" />
